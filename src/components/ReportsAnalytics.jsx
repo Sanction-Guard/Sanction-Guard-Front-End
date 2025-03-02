@@ -58,50 +58,52 @@ function ReportsAnalytics() {
       <Card className="mb-4">
         <Card.Body>
           <h4>Generated Reports</h4>
+          {/* TODO: Implement dynamic generated reports from backend */}
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h5 className="mb-1">March 2024 Compliance Report</h5>
-              <small className="text-muted">Generated on Mar 15, 2024</small>
+              <h5 className="mb-1">March 2020 Demo Report</h5>
+              <small className="text-muted">Generated on N/A</small>
             </div>
             <div>
               <Button variant="outline-secondary" className="me-2">Preview</Button>
               <Button variant="dark">Download</Button>
             </div>
           </div>
-          <div className="d-flex justify-content-between align-items-center">
+          {/* <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h5 className="mb-1">Q1 2024 Risk Analysis</h5>
-              <small className="text-muted">Generated on Mar 1, 2024</small>
+              <h5 className="mb-1">N/A</h5>
+              <small className="text-muted">Generated on N/A</small>
             </div>
             <div>
               <Button variant="outline-secondary" className="me-2">Preview</Button>
               <Button variant="dark">Download</Button>
             </div>
-          </div>
+          </div> */}
         </Card.Body>
       </Card>
 
       <h3 className="mb-3">Analytics Dashboard</h3>
       <Row>
+        {/* TODO: Implement dynamic analytics metrics from backend */}
         <Col md={4}>
           <Card className="analytics-card">
             <div className="stat-label">Total Screenings</div>
-            <div className="stat-value">12,458</div>
-            <div className="trend-indicator trend-up">↑ 12% from last month</div>
+            <div className="stat-value">N/A</div>
+            <div className="trend-indicator trend-up">N/A</div>
           </Card>
         </Col>
         <Col md={4}>
           <Card className="analytics-card">
             <div className="stat-label">Match Rate</div>
-            <div className="stat-value">2.4%</div>
-            <div className="trend-indicator trend-down">↓ 0.5% from last month</div>
+            <div className="stat-value">N/A</div>
+            <div className="trend-indicator trend-down">N/A</div>
           </Card>
         </Col>
         <Col md={4}>
           <Card className="analytics-card">
             <div className="stat-label">Average Response Time</div>
-            <div className="stat-value">1.2s</div>
-            <div className="trend-indicator trend-up">↑ 15% faster</div>
+            <div className="stat-value">N/A</div>
+            <div className="trend-indicator trend-up">N/A</div>
           </Card>
         </Col>
       </Row>
