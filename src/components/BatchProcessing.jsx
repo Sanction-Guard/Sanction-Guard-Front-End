@@ -17,29 +17,30 @@ function BatchProcessing() {
       </Card>
 
       <h3 className="mb-3">Recent Batch Jobs</h3>
+      {/* TODO: Implement dynamic batch jobs from backend */}
       <Card className="mb-3">
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h5 className="mb-1">customers_march.csv</h5>
-              <p className="text-muted mb-0">1,234 records</p>
+              <h5 className="mb-1">demo_data.csv</h5>
+              <p className="text-muted mb-0">N/A records</p>
             </div>
-            <Badge bg="primary">Processing</Badge>
+            <Badge bg="primary">Processed</Badge>
           </div>
         </Card.Body>
       </Card>
 
-      <Card>
+      {/* <Card>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h5 className="mb-1">vendors_q1.csv</h5>
-              <p className="text-muted mb-0">891 records</p>
+              <h5 className="mb-1">N/A</h5>
+              <p className="text-muted mb-0">N/A records</p>
             </div>
-            <Badge bg="success">Completed</Badge>
+            <Badge bg="success">N/A</Badge>
           </div>
         </Card.Body>
-      </Card>
+      </Card> */}
     </Container>
   );
 }
