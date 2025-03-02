@@ -1,44 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import stringSimilarity from 'string-similarity';
+
 
 function SearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [backendStatus, setBackendStatus] = useState('unknown');
-  
-  // Backend URL - use the same port for all API calls
-  const BACKEND_URL = 'http://localhost:3001';
+  const [expandedResults, setExpandedResults] = useState({}); // Track expanded results
+  const [totalSearches, setTotalSearches] = useState(0); // Track total searches
+  const [totalMatches, setTotalMatches] = useState(0); // Track total matches
 
-  // Check if backend is accessible
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        // Try to ping the backend
-        const response = await fetch(`${BACKEND_URL}/`, { 
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          setBackendStatus('connected');
-          console.log('Backend connection successful');
-        } else {
-          setBackendStatus('error');
-          console.error('Backend returned status:', response.status);
-        }
-      } catch (err) {
-        setBackendStatus('error');
-        console.error('Cannot connect to backend:', err);
-      }
-    };
-    
-    checkBackend();
-  }, []);
+  // Database status for quick actions
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Elasticsearch credentials and endpoint
+  const ELASTICSEARCH_URL = 'http://34.238.157.184:9200';
+  const ELASTICSEARCH_INDEX = 'sanction_names';
+  const ELASTICSEARCH_USERNAME = 'elastic';
+  const ELASTICSEARCH_PASSWORD = 'm8m3g9dZ1LsA2cTUpcd1';
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -49,97 +31,142 @@ function SearchScreen() {
     try {
       setLoading(true);
       setError(null);
-      
-      // Use the same backend URL constant
-      const response = await fetch(`${BACKEND_URL}/api/search`, {
+      setTotalSearches((prev) => prev + 1); // Increment search count
+
+      // Elasticsearch query
+      const query = {
+        query: {
+          multi_match: {
+            query: searchTerm,
+            fields: ["firstName", "secondName", "thirdName", "full_name", "aka", "aliasNames"],
+            fuzziness: "AUTO"
+          }
+        },
+        size: 1000
+      };
+
+      // Make the request to Elasticsearch
+      const response = await fetch(`${ELASTICSEARCH_URL}/${ELASTICSEARCH_INDEX}/_search`, {
         method: 'POST',
-        mode: 'cors', // Enable CORS
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Authorization': `Basic ${btoa(`${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}`)}`
         },
-        body: JSON.stringify({ fullName: searchTerm }),
+        body: JSON.stringify(query),
       });
 
       // Handle HTTP error statuses
       if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
+        throw new Error(`Elasticsearch responded with status: ${response.status}`);
       }
 
       // Get the response as JSON directly
       const result = await response.json();
-      console.log('Search result:', result);
-      
-      // Check if the result has the expected structure
-      if (!result.success) {
-        throw new Error(result.error || 'Search failed');
-      }
-      
-      // Ensure results are always an array
-      let resultData = result.data || [];
-      
-      // Check if data is an array, if not, try to convert it or wrap it
-      if (!Array.isArray(resultData)) {
-        console.warn('Search results are not an array:', resultData);
+      console.log('Elasticsearch result:', result);
+
+      // Extract hits from the response
+      const hits = result.hits?.hits || [];
+      const maxScore = Math.max(...hits.map(hit => hit._score || 0));
+
+      // Map hits to include the matched name and similarity score
+      const formattedResults = hits.map(hit => {
+        const dbName = `${hit._source.firstName || ''} ${hit._source.secondName || ''} ${hit._source.thirdName || ''}`.trim();
+        const similarity = stringSimilarity.compareTwoStrings(searchTerm.toLowerCase(), dbName.toLowerCase());
         
-        // If it's an object with properties that look like array indices
-        if (typeof resultData === 'object' && resultData !== null) {
-          // Try to convert object to array if it has numeric keys
-          const tempArray = Object.values(resultData);
-          if (tempArray.length > 0) {
-            resultData = tempArray;
-          } else {
-            // Wrap the object in an array as a fallback
-            resultData = [resultData];
-          }
-        } else {
-          // Last resort: create an array with one item
-          resultData = [resultData];
-        }
-      }
-      
-      console.log('Processed search results:', resultData);
-      setSearchResults(resultData);
-      
+        return {
+          ...hit._source,
+          score: hit._score,
+          similarityPercentage: (similarity * 100).toFixed(2)
+        };
+      });
+
+      // Filter results with similarity percentage > 50
+      const filteredResults = formattedResults.filter(result => result.similarityPercentage > 50);
+
+      // Sort in descending order of similarityPercentage
+      formattedResults.sort((a, b) => b.similarityPercentage - a.similarityPercentage);
+
+    
+      console.log('Processed search results:', formattedResults);
+      setSearchResults(formattedResults);
+      setExpandedResults({}); // Reset expanded results
+      setTotalMatches((prev) => prev + hits.length); // Update total matches
+
     } catch (err) {
       console.error('Search error:', err);
       setError(`Error searching: ${err.message}`);
-      
-      // Set empty array on error rather than null
       setSearchResults([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Format the date to be more readable
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    
+  // Fetch database status for quick actions
+  const fetchDatabaseStatus = async () => {
     try {
-      // Check if it's already in a DD.MM.YYYY format
-      if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateString)) {
-        return dateString;
+      // Fetch total records
+      const countResponse = await fetch(`${ELASTICSEARCH_URL}/${ELASTICSEARCH_INDEX}/_count`, {
+        headers: {
+          'Authorization': `Basic ${btoa(`${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}`)}`
+        }
+      });
+
+      if (!countResponse.ok) {
+        throw new Error('Failed to fetch total records');
       }
-      
-      // Try to parse as ISO date
-      const date = new Date(dateString);
-      return isNaN(date.getTime()) 
-        ? dateString // If invalid, return the original string
-        : date.toISOString().split('T')[0].split('-').reverse().join('.');
-    } catch (e) {
-      return dateString;
+
+      const countData = await countResponse.json();
+      setTotalRecords(countData.count);
+
+      // Fetch the most recent document by created_at
+      const latestResponse = await fetch(`${ELASTICSEARCH_URL}/${ELASTICSEARCH_INDEX}/_search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa(`${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}`)}`
+        },
+        body: JSON.stringify({
+          size: 1,
+          sort: [{ "created_at": { "order": "desc" } }],
+          _source: ["created_at"]
+        }),
+      });
+
+      if (!latestResponse.ok) {
+        throw new Error('Failed to fetch last updated time');
+      }
+
+      const latestData = await latestResponse.json();
+      const latestHit = latestData.hits?.hits[0]?._source?.created_at;
+
+      if (latestHit) {
+        setLastUpdated(new Date(latestHit).toLocaleString());
+      } else {
+        setLastUpdated('N/A');
+      }
+
+    } catch (err) {
+      console.error('Error fetching database status:', err);
+      setTotalRecords(0);
+      setLastUpdated('Error');
     }
+  };
+
+  // Fetch database status on component mount
+  useEffect(() => {
+    fetchDatabaseStatus();
+  }, []);
+
+  // Toggle expanded view for a specific result
+  const toggleExpand = (index) => {
+    setExpandedResults((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle the expanded state for this index
+    }));
   };
 
   return (
     <Container>
-      {backendStatus === 'error' && (
-        <Alert variant="warning" className="mt-3">
-          Could not connect to backend server. Make sure it's running on port 3001.
-        </Alert>
-      )}
-      
       <Card className="mb-4">
         <Card.Body>
           <h4 className="mb-3">Advanced Screening</h4>
@@ -158,10 +185,10 @@ function SearchScreen() {
               <Button variant="outline-secondary">
                 <i className="bi bi-funnel"></i> Filters
               </Button>
-              <Button 
-                variant="dark" 
-                type="submit" 
-                disabled={loading || backendStatus === 'error'}
+              <Button
+                variant="dark"
+                type="submit"
+                disabled={loading}
               >
                 {loading ? <Spinner animation="border" size="sm" /> : 'Screen'}
               </Button>
@@ -184,33 +211,48 @@ function SearchScreen() {
                 {searchResults.map((result, index) => (
                   <Card key={index} className="mb-3">
                     <Card.Header className="d-flex justify-content-between align-items-center bg-light">
-                      <h6 className="mb-0">
-                        {result.reference_number ? 
-                          `Individual ${result.reference_number.split('/').pop()}` : 
-                          `Individual ${index + 1}`}
-                      </h6>
-                      <Button variant="outline-primary" size="sm">View Details</Button>
+                      <Col xs={5}>
+                        <h6 className="mb-0">
+                          {result.firstName} {result.secondName} {result.thirdName}
+                        </h6>
+                      </Col>
+
+                      <Col xs={4} className="text-center">
+                        <strong>Similarity: {result.similarityPercentage}%</strong>
+                      </Col>
+
+                      <Col>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => toggleExpand(index)}
+                        >
+                          {expandedResults[index] ? 'Hide Details' : 'More Info'}
+                        </Button>
+                      </Col>
                     </Card.Header>
-                    <Card.Body>
-                      <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                    {expandedResults[index] && (
+                      <Card.Body>
+                        <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
 {`{
   ${result._id ? `_id: ${result._id},` : ''}
   ${result.reference_number ? `reference_number: '${result.reference_number}',` : ''}
   ${result.__v !== undefined ? `__v: ${result.__v},` : ''}
-  ${result.aka && result.aka.length ? `aka: [${result.aka.map(name => ` '${name}'`)}],` : ''}
-  ${result.created_at ? `created_at: ${new Date(result.created_at).toISOString()},` : ''}
+  ${result.aka && result.aka.length ? `aka: [${result.aka.map(name => `'${name}'`).join(', ')}],` : ''}
+  ${result.created_at ? `created_at: '${new Date(result.created_at).toISOString()}',` : ''}
   ${result.dob ? `dob: '${result.dob}',` : ''}
   ${result.firstName ? `firstName: '${result.firstName}',` : ''}
   ${result.nic ? `nic: '${result.nic}',` : ''}
   ${result.secondName ? `secondName: '${result.secondName}',` : ''}
   ${result.thirdName ? `thirdName: '${result.thirdName}'` : ''}
 ${Object.keys(result)
-  .filter(key => !['_id', 'reference_number', '__v', 'aka', 'created_at', 'dob', 'firstName', 'nic', 'secondName', 'thirdName'].includes(key))
+  .filter(key => !['id', 'reference_number', '__v', 'aka', 'created_at', 'dob', 'firstName', 'nic', 'secondName', 'thirdName'].includes(key))
   .map(key => `  ${key}: ${typeof result[key] === 'string' ? `'${result[key]}'` : JSON.stringify(result[key])},`)
   .join('\n')}
 }`}
-                      </pre>
-                    </Card.Body>
+                        </pre>
+                      </Card.Body>
+                    )}
                   </Card>
                 ))}
               </div>
@@ -218,20 +260,18 @@ ${Object.keys(result)
           </Card.Body>
         </Card>
       )}
-
       <Row>
         <Col md={4}>
           <Card>
             <Card.Body>
               <h5>Today's Activity</h5>
-              {/* CHAVISHKA TRY TO IMPLEMENT THIS */}
               <div className="d-flex justify-content-between mb-2">
                 <span>Searches</span>
-                <span>N/A</span>
+                <span>{totalSearches}</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span>Matches</span>
-                <span>N/A</span>
+                <span>{totalMatches}</span>
               </div>
             </Card.Body>
           </Card>
@@ -240,14 +280,13 @@ ${Object.keys(result)
           <Card>
             <Card.Body>
               <h5>Database Status</h5>
-              {/* TODO: Implement dynamic database status from backend */}
               <div className="d-flex justify-content-between mb-2">
                 <span>Total Records</span>
-                <span>N/A</span>
+                <span>{totalRecords}</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span>Last Updated</span>
-                <span>N/Ah ago</span>
+                <span>{lastUpdated || 'N/A'}</span>
               </div>
             </Card.Body>
           </Card>
@@ -257,7 +296,12 @@ ${Object.keys(result)
             <Card.Body>
               <h5>Quick Actions</h5>
               <div className="d-grid gap-2">
-                <Button variant="outline-primary">
+                <Button variant="outline-primary" onClick={() => {
+                  fetchDatabaseStatus();
+                  setTotalSearches(0);
+                  setTotalMatches(0);
+                  setSearchResults(null);
+                }}>
                   <i className="bi bi-arrow-clockwise"></i> Refresh Data
                 </Button>
                 <Button variant="outline-secondary">
