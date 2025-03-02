@@ -21,12 +21,13 @@ function DataImport() {
 
       <h3 className="mb-3">Recent Imports</h3>
       <Row>
+        {/* TODO: Implement dynamic recent imports from backend */}
         <Col>
           <Card>
             <Card.Body>
               <h5>UN Sanctions List</h5>
-              <p className="text-muted">2,450 entries updated</p>
-              <small className="text-muted">2 mins ago</small>
+              <p className="text-muted">N/A entries updated</p>
+              <small className="text-muted">N/A mins ago</small>
             </Card.Body>
           </Card>
         </Col>
@@ -34,8 +35,8 @@ function DataImport() {
           <Card>
             <Card.Body>
               <h5>EU Consolidated List</h5>
-              <p className="text-muted">1,832 entries updated</p>
-              <small className="text-muted">1 hour ago</small>
+              <p className="text-muted">N/A entries updated</p>
+              <small className="text-muted">N/A hours ago</small>
             </Card.Body>
           </Card>
         </Col>
