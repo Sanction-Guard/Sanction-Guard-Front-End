@@ -71,3 +71,19 @@
 .trend-down {
   color: #dc3545;
 }
+
+.equal-height-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensures full height */
+}
+
+.equal-height-col .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.equal-height-col .card-body {
+  flex-grow: 1; /* Ensures content is flexible and grows to fill available space */
+}
