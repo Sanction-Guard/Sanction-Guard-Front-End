@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Form, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
 import stringSimilarity from 'string-similarity';
-
+import { exportResultsToTextFile } from './exportUtils';
 
 function SearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,9 +11,8 @@ function SearchScreen() {
   const [expandedResults, setExpandedResults] = useState({}); // Track expanded results
   const [totalSearches, setTotalSearches] = useState(0); // Track total searches
   const [totalMatches, setTotalMatches] = useState(0); // Track total matches
-
-  // Database status for quick actions
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [searchType, setSearchType] = useState('individual'); // Default to 'individual'
+  const [totalRecords, setTotalRecords] = useState(0); // Database status for quick actions
   const [lastUpdated, setLastUpdated] = useState(null);
 
   // Elasticsearch credentials and endpoint
@@ -66,31 +65,33 @@ function SearchScreen() {
 
       // Extract hits from the response
       const hits = result.hits?.hits || [];
-      const maxScore = Math.max(...hits.map(hit => hit._score || 0));
 
       // Map hits to include the matched name and similarity score
       const formattedResults = hits.map(hit => {
         const dbName = `${hit._source.firstName || ''} ${hit._source.secondName || ''} ${hit._source.thirdName || ''}`.trim();
         const similarity = stringSimilarity.compareTwoStrings(searchTerm.toLowerCase(), dbName.toLowerCase());
-        
+
         return {
           ...hit._source,
           score: hit._score,
-          similarityPercentage: (similarity * 100).toFixed(2)
+          similarityPercentage: (similarity * 100).toFixed(2),
         };
       });
 
-      // Filter results with similarity percentage > 50
-      const filteredResults = formattedResults.filter(result => result.similarityPercentage > 50);
+      // Filter results based on searchType
+      const filteredResults = formattedResults.filter(result => {
+        if (searchType === 'individual') return result.type === 'individual';
+        if (searchType === 'entity') return result.type === 'entity';
+        return true; // Default: return all
+      });
 
       // Sort in descending order of similarityPercentage
-      formattedResults.sort((a, b) => b.similarityPercentage - a.similarityPercentage);
+      filteredResults.sort((a, b) => b.similarityPercentage - a.similarityPercentage);
 
-    
-      console.log('Processed search results:', formattedResults);
-      setSearchResults(formattedResults);
+      console.log('Processed search results:', filteredResults);
+      setSearchResults(filteredResults);
       setExpandedResults({}); // Reset expanded results
-      setTotalMatches((prev) => prev + hits.length); // Update total matches
+      setTotalMatches((prev) => prev + filteredResults.length); // Update total matches
 
     } catch (err) {
       console.error('Search error:', err);
@@ -182,9 +183,15 @@ function SearchScreen() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Button variant="outline-secondary">
-                <i className="bi bi-funnel"></i> Filters
-              </Button>
+              <Dropdown>
+                <Dropdown.Toggle variant="outline-secondary" id="dropdown-filter">
+                  Filter by {searchType === 'individual' ? 'Individual' : 'Entity'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => setSearchType('individual')}>Individual</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setSearchType('entity')}>Entity</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
               <Button
                 variant="dark"
                 type="submit"
@@ -221,7 +228,7 @@ function SearchScreen() {
                         <strong>Similarity: {result.similarityPercentage}%</strong>
                       </Col>
 
-                      <Col>
+                      <Col className="d-flex justify-content-end">
                         <Button
                           variant="outline-primary"
                           size="sm"
@@ -233,24 +240,70 @@ function SearchScreen() {
                     </Card.Header>
                     {expandedResults[index] && (
                       <Card.Body>
-                        <pre className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-{`{
-  ${result._id ? `_id: ${result._id},` : ''}
-  ${result.reference_number ? `reference_number: '${result.reference_number}',` : ''}
-  ${result.__v !== undefined ? `__v: ${result.__v},` : ''}
-  ${result.aka && result.aka.length ? `aka: [${result.aka.map(name => `'${name}'`).join(', ')}],` : ''}
-  ${result.created_at ? `created_at: '${new Date(result.created_at).toISOString()}',` : ''}
-  ${result.dob ? `dob: '${result.dob}',` : ''}
-  ${result.firstName ? `firstName: '${result.firstName}',` : ''}
-  ${result.nic ? `nic: '${result.nic}',` : ''}
-  ${result.secondName ? `secondName: '${result.secondName}',` : ''}
-  ${result.thirdName ? `thirdName: '${result.thirdName}'` : ''}
-${Object.keys(result)
-  .filter(key => !['id', 'reference_number', '__v', 'aka', 'created_at', 'dob', 'firstName', 'nic', 'secondName', 'thirdName'].includes(key))
-  .map(key => `  ${key}: ${typeof result[key] === 'string' ? `'${result[key]}'` : JSON.stringify(result[key])},`)
-  .join('\n')}
-}`}
-                        </pre>
+                        <table className="table table-bordered table-sm">
+                          <tbody>
+                            {result.firstName && (
+                              <tr>
+                                <th>First Name</th>
+                                <td>{result.firstName}</td>
+                              </tr>
+                            )}
+                            {result.secondName && (
+                              <tr>
+                                <th>Second Name</th>
+                                <td>{result.secondName}</td>
+                              </tr>
+                            )}
+                            {result.thirdName && (
+                              <tr>
+                                <th>Third Name</th>
+                                <td>{result.thirdName}</td>
+                              </tr>
+                            )}
+                            {result.full_name && (
+                              <tr>
+                                <th>Full Name</th>
+                                <td>{result.full_name}</td>
+                              </tr>
+                            )}
+                            {result.aliasNames && result.aliasNames.length > 0 && (
+                              <tr>
+                                <th>Alias Names</th>
+                                <td>{result.aliasNames.join(', ')}</td>
+                              </tr>
+                            )}
+                            {result.source && (
+                              <tr>
+                                <th>Source</th>
+                                <td>{result.source}</td>
+                              </tr>
+                            )}
+                            {result.type && (
+                              <tr>
+                                <th>Type</th>
+                                <td>{result.type}</td>
+                              </tr>
+                            )}
+                            {result.country && (
+                              <tr>
+                                <th>Country</th>
+                                <td>{result.country}</td>
+                              </tr>
+                            )}
+                            {result.similarityPercentage && (
+                              <tr>
+                                <th>Similarity %</th>
+                                <td>{result.similarityPercentage}%</td>
+                              </tr>
+                            )}
+                            {result.score && (
+                              <tr>
+                                <th>Score</th>
+                                <td>{result.score}</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </Card.Body>
                     )}
                   </Card>
@@ -260,12 +313,13 @@ ${Object.keys(result)
           </Card.Body>
         </Card>
       )}
+
       <Row>
-        <Col md={4}>
+        <Col md={4} className="equal-height-col">
           <Card>
             <Card.Body>
-              <h5>Today's Activity</h5>
-              <div className="d-flex justify-content-between mb-2">
+              <h5 className="m-3">Today's Activity</h5>
+              <div className="d-flex justify-content-between mb-3">
                 <span>Searches</span>
                 <span>{totalSearches}</span>
               </div>
@@ -276,11 +330,11 @@ ${Object.keys(result)
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
+        <Col md={4} className="equal-height-col">
           <Card>
             <Card.Body>
-              <h5>Database Status</h5>
-              <div className="d-flex justify-content-between mb-2">
+              <h5 className="m-3">Database Status</h5>
+              <div className="d-flex justify-content-between mb-3">
                 <span>Total Records</span>
                 <span>{totalRecords}</span>
               </div>
@@ -291,11 +345,11 @@ ${Object.keys(result)
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
+        <Col md={4} className="equal-height-col">
           <Card>
             <Card.Body>
-              <h5>Quick Actions</h5>
-              <div className="d-grid gap-2">
+              <h5 className="m-2">Quick Actions</h5>
+              <div className="d-grid gap-1">
                 <Button variant="outline-primary" onClick={() => {
                   fetchDatabaseStatus();
                   setTotalSearches(0);
@@ -304,7 +358,16 @@ ${Object.keys(result)
                 }}>
                   <i className="bi bi-arrow-clockwise"></i> Refresh Data
                 </Button>
-                <Button variant="outline-secondary">
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={() => {
+                    if (searchResults && searchResults.length > 0) {
+                      exportResultsToTextFile(searchResults);  // Call the export function
+                    } else {
+                      alert('No results to export');
+                    }
+                  }}
+                >
                   <i className="bi bi-download"></i> Export Results
                 </Button>
               </div>
