@@ -1,19 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
 import stringSimilarity from 'string-similarity';
-import { exportResultsToTextFile } from './exportUtils';
+import { useSearch } from './SearchContext';
+import ReportsAnalytics from "./ReportsAnalytics";
+
 
 function SearchScreen() {
+  const { totalSearches, setTotalSearches, totalMatches, setTotalMatches, searchResults, setSearchResults } = useSearch();
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [expandedResults, setExpandedResults] = useState({}); // Track expanded results
-  const [totalSearches, setTotalSearches] = useState(0); // Track total searches
-  const [totalMatches, setTotalMatches] = useState(0); // Track total matches
-  const [searchType, setSearchType] = useState('individual'); // Default to 'individual'
-  const [totalRecords, setTotalRecords] = useState(0); // Database status for quick actions
+  const [expandedResults, setExpandedResults] = useState({});
+  const [searchType, setSearchType] = useState('individual');
+  const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [analyticsData, setAnalyticsData] = useState([]);
+  
 
   // Elasticsearch credentials and endpoint
   const ELASTICSEARCH_URL = 'http://34.238.157.184:9200';
@@ -54,12 +57,10 @@ function SearchScreen() {
         body: JSON.stringify(query),
       });
 
-      // Handle HTTP error statuses
       if (!response.ok) {
         throw new Error(`Elasticsearch responded with status: ${response.status}`);
       }
 
-      // Get the response as JSON directly
       const result = await response.json();
       console.log('Elasticsearch result:', result);
 
@@ -70,11 +71,14 @@ function SearchScreen() {
       const formattedResults = hits.map(hit => {
         const dbName = `${hit._source.firstName || ''} ${hit._source.secondName || ''} ${hit._source.thirdName || ''}`.trim();
         const similarity = stringSimilarity.compareTwoStrings(searchTerm.toLowerCase(), dbName.toLowerCase());
-
+      
         return {
-          ...hit._source,
-          score: hit._score,
-          similarityPercentage: (similarity * 100).toFixed(2),
+          referenceNumber: hit._source.referenceNumber || '-', // Ensure this field is included
+          fullName: dbName, // Full name from the search result
+          dateOfBirth: hit._source.dateOfBirth || '-', // Ensure this field is included
+          nicNumber: hit._source.nicNumber || '-', // Ensure this field is included
+          similarityPercentage: (similarity * 100).toFixed(2), // Similarity percentage
+          ...hit._source, // Include all other fields from the search result
         };
       });
 
@@ -92,6 +96,17 @@ function SearchScreen() {
       setSearchResults(filteredResults);
       setExpandedResults({}); // Reset expanded results
       setTotalMatches((prev) => prev + filteredResults.length); // Update total matches
+
+      setAnalyticsData(prev => [
+        ...prev,
+        {
+          searchedName: searchTerm,
+          matchedName: filteredResults.length > 0 ? filteredResults[0].fullName : 'No Match',
+          dateOfBirth: filteredResults.length > 0 ? filteredResults[0].dateOfBirth : '-',
+          nicNumber: filteredResults.length > 0 ? filteredResults[0].nicNumber : '-',
+          timestamp: new Date().toLocaleString(),
+        }
+      ]);
 
     } catch (err) {
       console.error('Search error:', err);
@@ -373,10 +388,12 @@ function SearchScreen() {
               </div>
             </Card.Body>
           </Card>
+          <ReportsAnalytics />
         </Col>
       </Row>
     </Container>
   );
 }
+
 
 export default SearchScreen;
