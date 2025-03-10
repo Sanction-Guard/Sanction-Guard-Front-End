@@ -388,6 +388,11 @@ function SearchScreen() {
               </div>
             </Card.Body>
           </Card>
+<<<<<<< HEAD
+=======
+          
+          {/* <ReportsAnalytics /> */}
+>>>>>>> fa8bbb8be0fb711b575376eb842e74765dfeffb6
         </Col>
       </Row>
     </Container>
