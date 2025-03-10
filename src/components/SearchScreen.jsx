@@ -388,7 +388,6 @@ function SearchScreen() {
               </div>
             </Card.Body>
           </Card>
-          <ReportsAnalytics />
         </Col>
       </Row>
     </Container>

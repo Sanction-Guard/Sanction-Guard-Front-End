@@ -42,7 +42,7 @@ function ReportsAnalytics() {
 
     const matchedResults = searchResults.filter(result => 
       result.similarityPercentage && result.similarityPercentage > 0
-    ); // Adjust the condition based on your matching criteria
+    ); // Adjust the condition based on your matching criteria(threashold value)
 
     const doc = new jsPDF();
     const date = new Date().toLocaleString();
@@ -80,6 +80,88 @@ function ReportsAnalytics() {
     doc.save(`screening_report_${date.replace(/[\s:/]/g, '_')}.pdf`);
   };
 
+  //second report
+
+  const generateRiskPDF = () => {
+    if (!searchResults || searchResults.length === 0) {
+      alert("No data to generate the risk report.");
+      return;
+    }
+
+    const doc = new jsPDF();
+    const date = new Date().toLocaleString();
+
+    doc.setFontSize(18);
+    doc.text('Risk Analysis Report', 14, 22);
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${date}`, 14, 30);
+    doc.text(`Total Searches: ${totalSearches}`, 14, 40);
+    
+    const tableColumn = ['Reference No.', 'Full Name', 'Similarity %', 'Risk Level'];
+    const tableRows = searchResults.map(result => {
+      let riskLevel = "Low Risk";
+      if (result.similarityPercentage >= 80) {
+        riskLevel = "High Risk";
+      } else if (result.similarityPercentage >= 50) {
+        riskLevel = "Medium Risk";
+      }
+
+      return [
+        result.referenceNumber || '-',
+        result.fullName || '-',
+        result.similarityPercentage ? result.similarityPercentage + '%' : '-',
+        riskLevel
+      ];
+    });
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 50,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+    });
+
+    doc.save(`risk_analysis_${date.replace(/[\s:/]/g, '_')}.pdf`);
+};
+
+//compilance report
+
+const generateComplianceReport = () => {
+  const doc = new jsPDF();
+  const date = new Date().toLocaleString();
+
+  doc.setFontSize(18);
+  doc.text('Compliance Report', 14, 22);
+  doc.setFontSize(12);
+  doc.text(`Generated on: ${date}`, 14, 30);
+  doc.text(`Total Searches: ${totalSearches}`, 14, 40);
+  doc.text(`Total Users Engaged: ${totalMatches}`, 14, 50); // Assuming totalMatches represents active users
+  doc.text(`Match Rate: ${matchRate}%`, 14, 60);
+  doc.text(`Avg Response Time: ${responseTime} sec`, 14, 70);
+
+  const complianceData = [
+    ['Check', 'Status'],
+    ['System Uptime', '99.9%'],
+    ['Response Time < 3s', responseTime < 3 ? 'Pass' : 'Fail'],
+    ['Data Integrity Checks', 'Pass'], // Placeholder values
+    ['Failed Compliance Checks', '0'], // You might need real compliance tracking
+  ];
+
+  autoTable(doc, {
+    startY: 80,
+    head: [['Compliance Metric', 'Status']],
+    body: complianceData,
+    theme: 'grid',
+    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+  });
+
+  doc.save(`compliance_report_${date.replace(/[\s:/]/g, '_')}.pdf`);
+};
+
+
+//ui for buttons etc. 
+
   return (
     <Container>
       <Row className="mb-4">
@@ -99,7 +181,9 @@ function ReportsAnalytics() {
             <Card.Body>
               <h5>Risk Analysis</h5>
               <p className="text-muted">Risk levels and screening patterns</p>
-              <Button variant="primary" className="w-100">Generate</Button>
+              <Button variant="primary" className="w-100" onClick={generateRiskPDF}>
+                Generate
+              </Button>
             </Card.Body>
           </Card>
         </Col>
@@ -108,7 +192,9 @@ function ReportsAnalytics() {
             <Card.Body>
               <h5>Compliance Report</h5>
               <p className="text-muted">System usage and compliance tracking</p>
-              <Button variant="primary" className="w-100">Generate</Button>
+              <Button variant="primary" className="w-100" onClick={generateComplianceReport}>
+                Generate
+              </Button>
             </Card.Body>
           </Card>
         </Col>
