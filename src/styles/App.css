@@ -258,3 +258,33 @@
   box-shadow: var(--shadow-md);
   border-color: var(--primary-light);
 }
+
+/* Updating status badges */
+.status-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.healthy {
+  background-color: var(--success);
+  color: white;
+}
+
+.status-badge.warning {
+  background-color: var(--warning);
+  color: var(--dark);
+}
+
+.status-badge.danger {
+  background-color: var(--danger);
+  color: white;
+}
+
+.status-badge.info {
+  background-color: var(--info);
+  color: white;
+}
