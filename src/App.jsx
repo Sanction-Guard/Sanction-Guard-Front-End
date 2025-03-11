@@ -9,12 +9,15 @@ import AuditLog from './components/AuditLog.jsx';
 import DatabaseStatus from './components/DatabaseStatus.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
+import ModernNavigation from './components/ModernNavigation.jsx';
 
 function App() {
   return (
     <Router>
       <div className="app-container">
-        <Navigation />
+        {/* Old Navigation Bar */}
+        {/* <Navigation  />  */}
+        <ModernNavigation />
         
         <main className="main-content">
           <Routes>

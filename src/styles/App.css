@@ -40,6 +40,8 @@
   --transition-slow: 500ms ease;
 }
 
+/* Old Styling */
+
 .app-container {
   min-height: 100vh;
   background-color: #f8f9fa;
