@@ -1,10 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
-import stringSimilarity from 'string-similarity';
 import { useSearch } from './SearchContext';
 import ReportsAnalytics from "./ReportsAnalytics";
-
 
 function SearchScreen() {
   const { totalSearches, setTotalSearches, totalMatches, setTotalMatches, searchResults, setSearchResults } = useSearch();
@@ -16,13 +13,6 @@ function SearchScreen() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
-  
-
-  // Elasticsearch credentials and endpoint
-  const ELASTICSEARCH_URL = 'http://34.238.157.184:9200';
-  const ELASTICSEARCH_INDEX = 'sanction_names';
-  const ELASTICSEARCH_USERNAME = 'elastic';
-  const ELASTICSEARCH_PASSWORD = 'm8m3g9dZ1LsA2cTUpcd1';
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -33,77 +23,32 @@ function SearchScreen() {
     try {
       setLoading(true);
       setError(null);
-      setTotalSearches((prev) => prev + 1); // Increment search count
+      setTotalSearches((prev) => prev + 1);
 
-      // Elasticsearch query
-      const query = {
-        query: {
-          multi_match: {
-            query: searchTerm,
-            fields: ["firstName", "secondName", "thirdName", "full_name", "aka", "aliasNames"],
-            fuzziness: "AUTO"
-          }
-        },
-        size: 1000
-      };
-
-      // Make the request to Elasticsearch
-      const response = await fetch(`${ELASTICSEARCH_URL}/${ELASTICSEARCH_INDEX}/_search`, {
+      const response = await fetch('http://localhost:3001/api/search/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(`${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}`)}`
         },
-        body: JSON.stringify(query),
+        body: JSON.stringify({ searchTerm, searchType }),
       });
 
       if (!response.ok) {
-        throw new Error(`Elasticsearch responded with status: ${response.status}`);
+        throw new Error(`Search failed: ${response.statusText}`);
       }
 
-      const result = await response.json();
-      console.log('Elasticsearch result:', result);
-
-      // Extract hits from the response
-      const hits = result.hits?.hits || [];
-
-      // Map hits to include the matched name and similarity score
-      const formattedResults = hits.map(hit => {
-        const dbName = `${hit._source.firstName || ''} ${hit._source.secondName || ''} ${hit._source.thirdName || ''}`.trim();
-        const similarity = stringSimilarity.compareTwoStrings(searchTerm.toLowerCase(), dbName.toLowerCase());
-      
-        return {
-          referenceNumber: hit._source.referenceNumber || '-', // Ensure this field is included
-          fullName: dbName, // Full name from the search result
-          dateOfBirth: hit._source.dateOfBirth || '-', // Ensure this field is included
-          nicNumber: hit._source.nicNumber || '-', // Ensure this field is included
-          similarityPercentage: (similarity * 100).toFixed(2), // Similarity percentage
-          ...hit._source, // Include all other fields from the search result
-        };
-      });
-
-      // Filter results based on searchType
-      const filteredResults = formattedResults.filter(result => {
-        if (searchType === 'individual') return result.type === 'individual';
-        if (searchType === 'entity') return result.type === 'entity';
-        return true; // Default: return all
-      });
-
-      // Sort in descending order of similarityPercentage
-      filteredResults.sort((a, b) => b.similarityPercentage - a.similarityPercentage);
-
-      console.log('Processed search results:', filteredResults);
-      setSearchResults(filteredResults);
-      setExpandedResults({}); // Reset expanded results
-      setTotalMatches((prev) => prev + filteredResults.length); // Update total matches
+      const results = await response.json();
+      setSearchResults(results);
+      setExpandedResults({});
+      setTotalMatches((prev) => prev + results.length);
 
       setAnalyticsData(prev => [
         ...prev,
         {
           searchedName: searchTerm,
-          matchedName: filteredResults.length > 0 ? filteredResults[0].fullName : 'No Match',
-          dateOfBirth: filteredResults.length > 0 ? filteredResults[0].dateOfBirth : '-',
-          nicNumber: filteredResults.length > 0 ? filteredResults[0].nicNumber : '-',
+          matchedName: results.length > 0 ? results[0].fullName : 'No Match',
+          dateOfBirth: results.length > 0 ? results[0].dateOfBirth : '-',
+          nicNumber: results.length > 0 ? results[0].nicNumber : '-',
           timestamp: new Date().toLocaleString(),
         }
       ]);
@@ -117,49 +62,16 @@ function SearchScreen() {
     }
   };
 
-  // Fetch database status for quick actions
   const fetchDatabaseStatus = async () => {
     try {
-      // Fetch total records
-      const countResponse = await fetch(`${ELASTICSEARCH_URL}/${ELASTICSEARCH_INDEX}/_count`, {
-        headers: {
-          'Authorization': `Basic ${btoa(`${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}`)}`
-        }
-      });
-
-      if (!countResponse.ok) {
-        throw new Error('Failed to fetch total records');
+      const response = await fetch('http://localhost:3001/api/search/status');
+      if (!response.ok) {
+        throw new Error('Failed to fetch database status');
       }
 
-      const countData = await countResponse.json();
-      setTotalRecords(countData.count);
-
-      // Fetch the most recent document by created_at
-      const latestResponse = await fetch(`${ELASTICSEARCH_URL}/${ELASTICSEARCH_INDEX}/_search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa(`${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}`)}`
-        },
-        body: JSON.stringify({
-          size: 1,
-          sort: [{ "created_at": { "order": "desc" } }],
-          _source: ["created_at"]
-        }),
-      });
-
-      if (!latestResponse.ok) {
-        throw new Error('Failed to fetch last updated time');
-      }
-
-      const latestData = await latestResponse.json();
-      const latestHit = latestData.hits?.hits[0]?._source?.created_at;
-
-      if (latestHit) {
-        setLastUpdated(new Date(latestHit).toLocaleString());
-      } else {
-        setLastUpdated('N/A');
-      }
+      const status = await response.json();
+      setTotalRecords(status.totalRecords);
+      setLastUpdated(status.lastUpdated);
 
     } catch (err) {
       console.error('Error fetching database status:', err);
@@ -168,16 +80,14 @@ function SearchScreen() {
     }
   };
 
-  // Fetch database status on component mount
   useEffect(() => {
     fetchDatabaseStatus();
   }, []);
 
-  // Toggle expanded view for a specific result
   const toggleExpand = (index) => {
     setExpandedResults((prev) => ({
       ...prev,
-      [index]: !prev[index], // Toggle the expanded state for this index
+      [index]: !prev[index],
     }));
   };
 
@@ -388,13 +298,10 @@ function SearchScreen() {
               </div>
             </Card.Body>
           </Card>
-          
-          {/* <ReportsAnalytics /> */}
         </Col>
       </Row>
     </Container>
   );
 }
-
 
 export default SearchScreen;
