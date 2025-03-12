@@ -10,13 +10,16 @@ import DatabaseStatus from './components/DatabaseStatus.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
 import { SearchProvider } from "./components/SearchContext.jsx"; // Ensure this import is correct
+import ModernNavigation from './components/ModernNavigation.jsx';
 
 function App() {
   return (
     <SearchProvider>
       <Router>
         <div className="app-container">
-          <Navigation />
+          {/* Old Nav Bar */}
+          {/* <Navigation /> */}
+          <ModernNavigation />
           
           <main className="main-content">
             <Routes>

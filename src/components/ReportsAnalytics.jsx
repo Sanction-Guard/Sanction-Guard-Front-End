@@ -1,10 +1,10 @@
 
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
-import { Line } from 'react-chartjs-2';
 import { useSearch } from './SearchContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState } from 'react';
+
 
 
 import {
@@ -49,6 +49,7 @@ function ReportsAnalytics() {
     const doc = new jsPDF();
     const date = new Date().toLocaleString();
 
+  
     doc.setFontSize(18);
     doc.text('Daily Screening Report', 14, 22);
     doc.setFontSize(12);
