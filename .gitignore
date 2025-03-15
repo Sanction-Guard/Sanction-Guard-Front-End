@@ -131,3 +131,5 @@ dist
 .DS_Store
 *.code-workspace
 .qodo
+.DS_Store
+.DS_Store
