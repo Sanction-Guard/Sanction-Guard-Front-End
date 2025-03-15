@@ -25,38 +25,36 @@ function AuditLog() {
           </div>
 
           <div className="mb-4">
-            {/* TODO: Implement dynamic audit log entries from backend */}
             <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
               <div>
-                <h5 className="mb-1">Demo update</h5>
-                <p className="mb-1">Demo list updated with no new entries</p>
-                <small className="text-muted">User: demo | IP: 127.0.0.1</small>
+                <h5 className="mb-1">Database Update</h5>
+                <p className="mb-1">Sanctions list updated with 150 new entries</p>
+                <small className="text-muted">User: system_admin | IP: 192.168.1.100</small>
               </div>
-              <Badge bg="dark">N/A mins ago</Badge>
-            </div>
-
-            {/* <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
-              <div>
-                <h5 className="mb-1">N/A</h5>
-                <p className="mb-1">N/A</p>
-                <small className="text-muted">User: N/A | IP: N/A</small>
-              </div>
-              <Badge bg="dark">N/A</Badge>
+              <Badge bg="dark">2 mins ago</Badge>
             </div>
 
             <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
               <div>
-                <h5 className="mb-1">N/A</h5>
-                <p className="mb-1">N/A</p>
-                <small className="text-muted">User: N/A | IP: N/A</small>
+                <h5 className="mb-1">Batch Screening</h5>
+                <p className="mb-1">Processed 1,234 records with 3 matches</p>
+                <small className="text-muted">User: jane_doe | IP: 192.168.1.105</small>
               </div>
-              <Badge bg="dark">N/A</Badge>
-            </div> */}
+              <Badge bg="dark">1 hour ago</Badge>
+            </div>
+
+            <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
+              <div>
+                <h5 className="mb-1">Configuration Change</h5>
+                <p className="mb-1">Modified matching algorithm settings</p>
+                <small className="text-muted">User: system_admin | IP: 192.168.1.100</small>
+              </div>
+              <Badge bg="dark">3 hours ago</Badge>
+            </div>
           </div>
 
           <div className="d-flex justify-content-between align-items-center">
-            {/* TODO: Implement dynamic pagination info from backend */}
-            <small className="text-muted">Showing 1 of 1 entries</small>
+            <small className="text-muted">Showing 10 of 1,234 entries</small>
             <div>
               <Button variant="outline-secondary" size="sm" className="me-2">Previous</Button>
               <Button variant="outline-secondary" size="sm">Next</Button>

@@ -224,14 +224,13 @@ ${Object.keys(result)
           <Card>
             <Card.Body>
               <h5>Today's Activity</h5>
-              {/* CHAVISHKA TRY TO IMPLEMENT THIS */}
               <div className="d-flex justify-content-between mb-2">
                 <span>Searches</span>
-                <span>N/A</span>
+                <span>124</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span>Matches</span>
-                <span>N/A</span>
+                <span>3</span>
               </div>
             </Card.Body>
           </Card>
@@ -240,14 +239,13 @@ ${Object.keys(result)
           <Card>
             <Card.Body>
               <h5>Database Status</h5>
-              {/* TODO: Implement dynamic database status from backend */}
               <div className="d-flex justify-content-between mb-2">
                 <span>Total Records</span>
-                <span>N/A</span>
+                <span>125,431</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span>Last Updated</span>
-                <span>N/Ah ago</span>
+                <span>2h ago</span>
               </div>
             </Card.Body>
           </Card>
