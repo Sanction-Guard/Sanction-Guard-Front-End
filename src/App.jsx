@@ -9,18 +9,26 @@ import AuditLog from './components/AuditLog.jsx';
 import DatabaseStatus from './components/DatabaseStatus.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
+import ModernNavigation from './components/ModernNavigation.jsx';
+import Dashboard from './components/Dashboard.jsx';
+import ModernSearchScreen from './components/ModernSearchScreen.jsx';
+import ModernDataImport from './components/ModernDataImport.jsx';
+
 
 function App() {
   return (
     <Router>
       <div className="app-container">
-        <Navigation />
+        {/* Older Navbar */}
+        {/* <Navigation /> */}
+
+        <ModernNavigation />
         
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<ReportsAnalytics />} />
-            <Route path="/data-import" element={<DataImport />} />
-            <Route path="/search-screen" element={<SearchScreen />} />
+            <Route path="/dashboard" element={<Dashboard />} /> {/* Updated with new dashboard */}
+            <Route path="/data-import" element={<ModernDataImport />} />
+            <Route path="/search-screen" element={<ModernSearchScreen />} />
             <Route path="/batch-processing" element={<BatchProcessing />} />
             <Route path="/reports-analytics" element={<ReportsAnalytics />} />
             <Route path="/audit-log" element={<AuditLog />} />
