@@ -100,6 +100,14 @@
   transform: scale(1.1);
 }
 
+/* Smooth transition for nav labels */
+.nav-label {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.2s ease, transform 0.3s ease;
+  white-space: nowrap;
+}
+
 /* Active indicator animation */
 .nav-indicator {
   position: absolute;
@@ -126,10 +134,12 @@
 
 /* User profile section */
 .nav-bottom {
+  display: flex;
   margin-top: auto;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--light-gray);
   transition: all var(--transition-normal);
+  height: 100px;
 }
 
 .user-profile {
@@ -147,6 +157,7 @@
   overflow: hidden;
   margin-right: 0.75rem;
   border: 2px solid var(--light-gray);
+  transition: all var(--transition-normal);
 }
 
 .avatar img {
@@ -160,12 +171,18 @@
   font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-info p {
   margin: 0;
   font-size: 0.75rem;
   color: var(--dark-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Responsive collapsible navigation */
@@ -192,6 +209,35 @@
   
   .modern-nav:hover .nav-label {
     display: inline;
+    opacity: 0;
+    transform: translateX(-10px);
+    visibility: hidden;
+    max-width: 0;
+    margin-left: 0;
+    transition: opacity 0.2s ease, transform 0.3s ease, visibility 0.2s ease, max-width 0.3s ease, margin-left 0.3s ease;
+  }
+
+  .modern-nav:hover .nav-label {
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+    max-width: 200px;
+    margin-left: 1rem;
+    transition-delay: 0.1s;
+  }
+
+  .modern-nav:not(:hover) .nav-bottom {
+    padding: 0.75rem 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .modern-nav:not(:hover) .user-profile {
+    justify-content: center;
+  }
+
+  .modern-nav:not(:hover) .avatar {
+    margin-right: 0;
   }
   
   .user-info {
@@ -200,6 +246,22 @@
   
   .modern-nav:hover .user-info {
     display: block;
+  }
+
+  .nav-link {
+    transition: all var(--transition-normal);
+    width: 100%;
+    white-space: nowrap;
+  }
+
+  .modern-nav:not(:hover) .nav-link {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .modern-nav:hover .nav-link {
+    justify-content: flex-start;
   }
   
   .nav-link i {
