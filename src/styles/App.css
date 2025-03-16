@@ -64,7 +64,7 @@ body {
   padding: 2rem;
   margin-top: 1rem;
   width: calc(100% - 280px); /* Adjust width to account for navbar */
-  margin-left: 280px !important; 
+  margin-left: 280px !important; /* !important was added because the left margin wasn't increasing beyond 280px before */
   transition: margin-left var(--transition-normal);
 }
 
