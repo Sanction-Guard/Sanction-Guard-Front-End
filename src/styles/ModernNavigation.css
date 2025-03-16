@@ -1,7 +1,7 @@
 .modern-nav {
   display: flex;
   flex-direction: column;
-  width: 250px;
+  width: 280px;
   height: 100vh;
   background-color: white;
   border-right: 1px solid var(--light-gray);
@@ -15,8 +15,12 @@
 
 /* Logo styling */
 .logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid var(--light-gray);
+  height: 100px;
 }
 
 .app-logo {
@@ -24,6 +28,34 @@
   font-weight: 700;
   color: var(--primary);
   margin: 0;
+}
+
+.app-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-logo-image {
+  width: 50px;
+  height: 50px;
+  margin-right: 8px;
+  object-fit: contain; /* Ensures the logo maintains its aspect ratio */
+}
+
+/* For responsive design - hiding only the text on small screens */
+@media (max-width: 768px) {
+  .modern-nav:not(:hover) .app-logo {
+    display: none;
+  }
+
+  .modern-nav:not(:hover) .app-logo-image {
+    margin-right: 0;
+  }
+
+  .app-logo-wrapper {
+    justify-content: center;
+  }
 }
 
 /* Navigation items */
@@ -54,7 +86,7 @@
 }
 
 .nav-link i {
-  font-size: 1.25rem;
+  font-size: 1.75rem;
   margin-right: 1rem;
   transition: transform var(--transition-fast);
 }
@@ -97,16 +129,19 @@
   margin-top: auto;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--light-gray);
+  transition: all var(--transition-normal);
 }
 
 .user-profile {
   display: flex;
   align-items: center;
   padding: 0.5rem 0;
+  transition: all var(--transition-normal);
 }
 
 .avatar {
   width: 40px;
+  min-width: 40px; /* Prevent shrinking */
   height: 40px;
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -122,7 +157,7 @@
 
 .user-info h4 {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -140,14 +175,14 @@
   }
   
   .modern-nav:hover {
-    width: 250px;
+    width: 280px;
   }
   
-  .app-logo {
+  .app-logo-text {
     display: none;
   }
   
-  .modern-nav:hover .app-logo {
+  .modern-nav:hover .app-logo-text {
     display: block;
   }
   

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import '../styles/ModernNavigation.css';
+import logo from '../img/logo.png';
 
 const ModernNavigation = () => {
   const location = useLocation();
@@ -21,8 +22,14 @@ const ModernNavigation = () => {
 
   return (
     <nav className="modern-nav">
-      <div className="logo-container">
-        <h1 className="app-logo">DataApp</h1>
+      <div className="logo-container container-fluid">
+        <div className="app-logo-wrapper">
+          <img src={logo} alt="Logo" className="app-logo-image" />
+          <div className="app-logo-text">
+            <h1 className="app-logo">SanctionGuard</h1>
+            <h6>Enterprise edition</h6>
+          </div>
+        </div>
       </div>
       
       <ul className="nav-items">
