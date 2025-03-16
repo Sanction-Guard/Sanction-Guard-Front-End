@@ -5,14 +5,14 @@ import logo from '../img/logo.png';
 
 const ModernNavigation = () => {
   const location = useLocation();
-  const [activeItem, setActiveItem] = useState(location.pathname);
+  const [activeItem, setActiveItem] = useState(location.pathname || "/");
   
   useEffect(() => {
-    setActiveItem(location.pathname);
+    setActiveItem(location.pathname || "/");
   }, [location]);
 
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
+    { path: "/", label: "Dashboard", icon: "bi-speedometer2" },
     { path: "/data-import", label: "Data Import", icon: "bi-upload" },
     { path: "/search-screen", label: "Search", icon: "bi-search" },
     { path: "/batch-processing", label: "Processing", icon: "bi-cpu" },
