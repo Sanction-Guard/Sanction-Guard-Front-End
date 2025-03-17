@@ -3,7 +3,8 @@
     /* Primary color palette */
     --primary: #096efd;
     --primary-light: #4895ef;
-    --primary-dark: #3f37c9;
+    /* --primary-dark: #3f37c9; */
+    --primary-dark: #0050f0;
 
     /* Secondary colors */
     --secondary: #4cc9f0;
@@ -11,10 +12,10 @@
 
     /* Neutral colors */
     --light: #f8f9fa;
-    --light-gray: #e9ecef;
+    --light-gray: #d5d5d5;
     --medium-gray: #ced4da;
-    --dark-gray: #6c757d;
-    --dark: #212529;
+    --dark-gray: #575b5e;
+    --dark: #21252b;
 
     /* Status colors */
     --success: #4ade80;
