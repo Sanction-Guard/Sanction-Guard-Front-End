@@ -22,6 +22,12 @@ const ModernNavigation = () => {
     { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" }
   ];
 
+  // Bottom navigation items (Settings and Alerts)
+  const bottomNavItems = [
+    { path: "/alerts", label: "Alerts", icon: "bi-bell" },
+    { path: "/settings", label: "Settings", icon: "bi-gear" }
+  ];
+
   return (
     <nav className="modern-nav">
       <div className="logo-container container-fluid">
@@ -45,6 +51,21 @@ const ModernNavigation = () => {
           </li>
         ))}
       </ul>
+
+      {/* Bottom nav items */}
+      <div className="bottom-nav-container">
+        <ul className="bottom-nav-items">
+          {bottomNavItems.map((item) => (
+            <li key={item.path} className={activeItem === item.path ? "nav-item active" : "nav-item"}>
+              <Link to={item.path} className="nav-link" onClick={() => setActiveItem(item.path)}>
+                <i className={`bi ${item.icon}`}></i>
+                <span className="nav-label">{item.label}</span>
+                {activeItem === item.path && <span className="nav-indicator" />}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
       
       <div className="nav-bottom">
         <div className="user-profile">

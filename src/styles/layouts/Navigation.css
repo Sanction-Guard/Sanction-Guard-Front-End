@@ -111,10 +111,23 @@
     }
 }
 
+/* Bottom navigation items (Settings and Alerts) */
+.bottom-nav-container {
+    margin-top: auto;
+    margin-bottom: 0;
+    padding: 1rem 0;
+    border-top: 1px solid var(--light-gray);
+}
+
+.bottom-nav-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 /* User profile section */
 .nav-bottom {
     display: flex;
-    margin-top: auto;
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--light-gray);
     transition: all var(--transition-normal);
@@ -239,5 +252,15 @@
 
     .modern-nav:hover .nav-link i {
         margin-right: 1rem;
+    }
+
+    .modern-nav:not(:hover) .bottom-nav-container {
+        padding: 0.5rem 0;
+    }
+
+    .modern-nav:not(:hover) .bottom-nav-items .nav-link {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
     }
 }
