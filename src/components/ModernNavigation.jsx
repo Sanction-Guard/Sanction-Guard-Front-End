@@ -16,9 +16,9 @@ const ModernNavigation = () => {
   const navItems = [
     { path: "/", label: "Dashboard", icon: "bi-speedometer2" },
     { path: "/search-screen", label: "Search", icon: "bi-search" },
-    { path: "/batch-processing", label: "Processing", icon: "bi-cpu" },
+    { path: "/batch-processing", label: "Batch Processing", icon: "bi-cpu" },
     { path: "/data-import", label: "Data Import", icon: "bi-upload" },
-    { path: "/reports-analytics", label: "Analytics", icon: "bi-bar-chart" },
+    { path: "/reports-analytics", label: "Reports & Analytics", icon: "bi-bar-chart" },
     { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" }
   ];
 
