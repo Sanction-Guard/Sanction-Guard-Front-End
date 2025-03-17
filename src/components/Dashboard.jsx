@@ -1,5 +1,10 @@
 import React from 'react';
 import DashboardCard from './DashboardCard';
+import '../styles/Base.css';
+import '../styles/layouts/Dashboard.css';
+import '../styles/components/Card.css';
+import '../styles/components/StatusBadge.css';
+import '../styles/components/Animation.css';
 
 const Dashboard = () => {
   // Sample data for dashboard
@@ -93,7 +98,7 @@ const Dashboard = () => {
                 className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
                 style={{ backgroundColor: '#4ade8020' }}
               >
-                <span className="text-success">⬤</span>
+                {/* <span className="text-success">⬤</span> */}
               </div>
               <div>
                 <h3 className="font-medium">Systems Operational</h3>
@@ -109,7 +114,7 @@ const Dashboard = () => {
             <div className="bg-light rounded p-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Main Database</span>
-                <span className="text-success text-sm">100%</span>
+                <span className="status-badge healthy">Good</span>
               </div>
               <div className="w-full bg-medium-gray rounded-full h-2 mt-2">
                 <div className="bg-success h-2 rounded-full" style={{ width: '100%' }}></div>
@@ -119,7 +124,7 @@ const Dashboard = () => {
             <div className="bg-light rounded p-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Backup Database</span>
-                <span className="text-success text-sm">98%</span>
+                <span className="status-badge healthy">Good</span>
               </div>
               <div className="w-full bg-medium-gray rounded-full h-2 mt-2">
                 <div className="bg-success h-2 rounded-full" style={{ width: '98%' }}></div>
@@ -129,7 +134,7 @@ const Dashboard = () => {
             <div className="bg-light rounded p-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Archive Database</span>
-                <span className="text-warning text-sm">87%</span>
+                <span className="status-badge healthy">Good</span>
               </div>
               <div className="w-full bg-medium-gray rounded-full h-2 mt-2">
                 <div className="bg-warning h-2 rounded-full" style={{ width: '87%' }}></div>
