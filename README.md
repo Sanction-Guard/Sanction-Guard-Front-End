@@ -104,7 +104,7 @@ We follow the Airbnb JavaScript Style Guide. Code formatting is enforced using E
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Support
-For support and questions, please open an issue in the GitHub repository or contact the development team at support@sanctionguard.com.
+For support and questions, please open an issue in the GitHub repository or contact the development team at support@sanctionguard2024@gmail.com.
 
 ## Acknowledgements
 - OpenSanctions for providing sanctions data
