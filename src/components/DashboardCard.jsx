@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Line } from 'recharts';
-import '../styles/Dashboard.css';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Animation.css';
 
 const DashboardCard = ({ title, value, trend, percentage, color, data }) => {
   const [isHovered, setIsHovered] = useState(false);

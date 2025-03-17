@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import '../styles/Base.css';
+import '../styles/layouts/SearchScreen.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
+import '../styles/components/Form.css';
+import '../styles/components/StatusBadge.css';
+import '../styles/components/Animation.css';
 
 const ModernSearchScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');

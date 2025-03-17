@@ -1,5 +1,8 @@
 import React from 'react';
 import { Card, Button, Container, Row, Col } from 'react-bootstrap';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
 
 function DataImport() {
   return (

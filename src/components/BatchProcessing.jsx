@@ -1,5 +1,9 @@
 import React from 'react';
 import { Container, Card, Button, Badge } from 'react-bootstrap';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
+import '../styles/components/StatusBadge.css';
 
 function BatchProcessing() {
   return (

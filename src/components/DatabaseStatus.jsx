@@ -1,5 +1,7 @@
 import React from 'react';
 import { Container, Badge } from 'react-bootstrap';
+import '../styles/Base.css';
+import '../styles/components/StatusBadge.css';
 
 function DatabaseStatus() {
   return (

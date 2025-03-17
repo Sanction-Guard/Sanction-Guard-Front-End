@@ -11,6 +11,10 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
+import '../styles/components/StatusBadge.css';
 
 ChartJS.register(
   CategoryScale,

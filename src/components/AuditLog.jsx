@@ -1,5 +1,10 @@
 import React from 'react';
 import { Container, Card, Form, Button, Badge } from 'react-bootstrap';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Form.css';
+import '../styles/components/Button.css';
+import '../styles/components/StatusBadge.css';
 
 function AuditLog() {
   return (

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import '../styles/Base.css';
+import '../styles/layouts/SearchScreen.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
+import '../styles/components/Form.css';
+import '../styles/components/StatusBadge.css';
+import '../styles/components/Animation.css';
 
 function SearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');

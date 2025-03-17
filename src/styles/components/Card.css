@@ -1,4 +1,34 @@
-/* New Analytics and Dashboard component styling */
+/* Card component */
+.card {
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--light-gray);
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    border-top: 1px solid var(--light-gray);
+    padding: 1rem 1.5rem;
+    background-color: var(--light);
+}
+
+/* Analytics card styles */
 .analytics-card {
     padding: 1.5rem;
     margin-bottom: 1rem;
@@ -58,4 +88,11 @@
 
 .trend-down::before {
     border-top: 5px solid var(--danger);
+}
+
+/* Dashboard grid layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
 }

@@ -1,4 +1,10 @@
 import React, { useState, useRef } from 'react';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
+import '../styles/components/Form.css';
+import '../styles/components/StatusBadge.css';
+import '../styles/components/Animation.css';
 
 const ModernDataImport = () => {
   const [isDragging, setIsDragging] = useState(false);

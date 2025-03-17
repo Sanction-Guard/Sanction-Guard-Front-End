@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import '../styles/ModernNavigation.css';
+import '../styles/Base.css';
+import '../styles/layouts/Navigation.css';
+import '../styles/components/Animation.css';
 import logo from '../img/logo.png';
 
 const ModernNavigation = () => {
@@ -13,9 +15,9 @@ const ModernNavigation = () => {
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: "bi-speedometer2" },
-    { path: "/data-import", label: "Data Import", icon: "bi-upload" },
     { path: "/search-screen", label: "Search", icon: "bi-search" },
     { path: "/batch-processing", label: "Processing", icon: "bi-cpu" },
+    { path: "/data-import", label: "Data Import", icon: "bi-upload" },
     { path: "/reports-analytics", label: "Analytics", icon: "bi-bar-chart" },
     { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" }
   ];
