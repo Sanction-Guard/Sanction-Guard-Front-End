@@ -25,7 +25,7 @@ function SearchScreen() {
       setError(null);
       setTotalSearches((prev) => prev + 1);
 
-      const response = await fetch('http://localhost:3001/api/search/search', {
+      const response = await fetch('http://localhost:3001/api/search/search?', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,6 +41,26 @@ function SearchScreen() {
       setSearchResults(results);
       setExpandedResults({});
       setTotalMatches((prev) => prev + results.length);
+
+      //sendind the stuff to database
+      const logResponse = await fetch('http://localhost:3001/api/search/search?', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchTerm,
+          searchType,
+          userId: 'user123',  
+          action: 'Search',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+  
+      if (!logResponse.ok) {
+        throw new Error('Failed to log search data');
+      }
+  
 
       setAnalyticsData(prev => [
         ...prev,
@@ -64,7 +84,7 @@ function SearchScreen() {
 
   const fetchDatabaseStatus = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/search/status');
+      const response = await fetch('http://localhost:3001/api/audit-logs?');
       if (!response.ok) {
         throw new Error('Failed to fetch database status');
       }

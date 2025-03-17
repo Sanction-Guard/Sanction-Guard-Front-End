@@ -1,17 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';  // Import useState and useEffect hooks
 import { Container, Card, Form, Button, Badge } from 'react-bootstrap';
+import axios from 'axios';
 
 function AuditLog() {
+
+  const [logs, setLogs] = useState([]); // State to store search logs
+  const [loading, setLoading] = useState(true); // State to track loading status
+  const [error, setError] = useState(null); // State to track errors
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/audit-logs?'); 
+        setLogs(response.data); 
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false); 
+      }
+    };
+
+    fetchLogs();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>; // Show a loading message while fetching data
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>; // Show an error message if the request fails
+  }
+
   return (
     <Container>
       <Card>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h4 className="mb-0">System Audit Log</h4>
+            <h4 className="mb-0">Search Logs</h4>
             <div>
               <Form.Control
                 type="text"
-                placeholder="Search audit logs..."
+                placeholder="Search logs..."
                 className="d-inline-block me-2"
                 style={{ width: '300px' }}
               />
@@ -25,38 +54,21 @@ function AuditLog() {
           </div>
 
           <div className="mb-4">
-            {/* TODO: Implement dynamic audit log entries from backend */}
-            <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
-              <div>
-                <h5 className="mb-1">Demo update</h5>
-                <p className="mb-1">Demo list updated with no new entries</p>
-                <small className="text-muted">User: demo | IP: 127.0.0.1</small>
+            {/* Render dynamic search log entries */}
+            {logs.map((log) => (
+              <div key={log._id} className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
+                <div>
+                  <h5 className="mb-1">{log.searchTerm}</h5>
+                  <p className="mb-1">Search Type: {log.searchType}</p>
+                  <small className="text-muted">User: {log.userId} | Timestamp: {new Date(log.timestamp).toLocaleString()}</small>
+                </div>
+                <Badge bg="dark">{log.action}</Badge>
               </div>
-              <Badge bg="dark">N/A mins ago</Badge>
-            </div>
-
-            {/* <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
-              <div>
-                <h5 className="mb-1">N/A</h5>
-                <p className="mb-1">N/A</p>
-                <small className="text-muted">User: N/A | IP: N/A</small>
-              </div>
-              <Badge bg="dark">N/A</Badge>
-            </div>
-
-            <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
-              <div>
-                <h5 className="mb-1">N/A</h5>
-                <p className="mb-1">N/A</p>
-                <small className="text-muted">User: N/A | IP: N/A</small>
-              </div>
-              <Badge bg="dark">N/A</Badge>
-            </div> */}
+            ))}
           </div>
 
           <div className="d-flex justify-content-between align-items-center">
-            {/* TODO: Implement dynamic pagination info from backend */}
-            <small className="text-muted">Showing 1 of 1 entries</small>
+            <small className="text-muted">Showing {logs.length} of {logs.length} entries</small>
             <div>
               <Button variant="outline-secondary" size="sm" className="me-2">Previous</Button>
               <Button variant="outline-secondary" size="sm">Next</Button>
