@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import Swal from 'sweetalert2';
 import './Settings.css';
-import img1 from '../img/img.jpg'; // Default profile image
+import img1 from '../Image/img.jpg'; // Default profile image
 
 function Settings() {
   // State for timezone settings
@@ -30,12 +31,23 @@ function Settings() {
 
   // Handlers for timezone settings
   const handleSaveTimezone = () => {
-    alert(`Timezone settings saved: ${timezone}, Date: ${date}, Time: ${time}`);
+    Swal.fire({
+      icon: 'success',
+      title: 'Timezone Settings Saved!',
+      text: `Timezone: ${timezone}, Date: ${date}, Time: ${time}`,
+      confirmButtonColor: '#3085d6',
+    });
   };
 
   // Handlers for dark/light mode
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
+    Swal.fire({
+      icon: 'info',
+      title: 'Theme Changed!',
+      text: `You switched to ${theme === 'light' ? 'Dark' : 'Light'} mode.`,
+      confirmButtonColor: '#3085d6',
+    });
   };
 
   // Handlers for profile settings
@@ -55,16 +67,45 @@ function Settings() {
   const handleSaveProfile = () => {
     setUserDetails({ ...editUserDetails });
     setShowProfilePopup(false);
-    alert('Profile updated successfully!');
+    Swal.fire({
+      icon: 'success',
+      title: 'Profile Updated!',
+      text: 'Your profile has been updated successfully.',
+      confirmButtonColor: '#3085d6',
+    });
   };
 
   const handleResetPassword = () => {
-    alert('Password reset link sent to your email!');
+    Swal.fire({
+      title: 'Send Password Reset?',
+      text: 'A reset link will be sent to your email.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, send it!',
+      cancelButtonText: 'No, cancel!',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Password Reset Sent!',
+          text: 'Check your email for the reset link.',
+          confirmButtonColor: '#3085d6',
+        });
+      }
+    });
   };
 
   // Handler for data source selection
   const handleDataSourceChange = (e) => {
     setDataSource(e.target.value);
+    Swal.fire({
+      icon: 'success',
+      title: 'Data Source Updated!',
+      text: `You selected: ${e.target.value} database.`,
+      confirmButtonColor: '#3085d6',
+    });
   };
 
   return (
@@ -103,19 +144,11 @@ function Settings() {
             </div>
             <div className="settings-row">
               <label>Date:</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="settings-row">
               <label>Time:</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
+              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
             <button className="save-button" onClick={handleSaveTimezone}>
               Save Timezone Settings
@@ -144,19 +177,11 @@ function Settings() {
             <h3>Notification Settings</h3>
             <div className="settings-row">
               <label>Web Alerts:</label>
-              <input
-                type="checkbox"
-                checked={webAlerts}
-                onChange={() => setWebAlerts(!webAlerts)}
-              />
+              <input type="checkbox" checked={webAlerts} onChange={() => setWebAlerts(!webAlerts)} />
             </div>
             <div className="settings-row">
               <label>Email Alerts:</label>
-              <input
-                type="checkbox"
-                checked={emailAlerts}
-                onChange={() => setEmailAlerts(!emailAlerts)}
-              />
+              <input type="checkbox" checked={emailAlerts} onChange={() => setEmailAlerts(!emailAlerts)} />
             </div>
           </div>
         </div>
