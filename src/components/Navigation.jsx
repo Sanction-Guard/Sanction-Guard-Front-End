@@ -57,6 +57,13 @@ function Navigation() {
             >
               Audit Log
             </Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/settings"
+              active={location.pathname === '/settings'}
+            >
+              Settings
+            </Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

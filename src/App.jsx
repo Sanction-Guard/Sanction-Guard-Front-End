@@ -7,6 +7,8 @@ import BatchProcessing from './components/BatchProcessing.jsx';
 import ReportsAnalytics from './components/ReportsAnalytics.jsx';
 import AuditLog from './components/AuditLog.jsx';
 import DatabaseStatus from './components/DatabaseStatus.jsx';
+import Settings from './components/Settings.jsx'; // Your Settings component
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
 import { SearchProvider } from "./components/SearchContext.jsx"; // Ensure this import is correct
@@ -29,6 +31,7 @@ function App() {
               <Route path="/batch-processing" element={<BatchProcessing />} />
               <Route path="/reports-analytics" element={<ReportsAnalytics />} />
               <Route path="/audit-log" element={<AuditLog />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>
         </div>

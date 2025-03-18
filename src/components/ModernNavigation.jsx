@@ -17,7 +17,8 @@ const ModernNavigation = () => {
     { path: "/search-screen", label: "Search", icon: "bi-search" },
     { path: "/batch-processing", label: "Processing", icon: "bi-cpu" },
     { path: "/reports-analytics", label: "Analytics", icon: "bi-bar-chart" },
-    { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" }
+    { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" },
+    { path: "/settings", label: "Settings", icon: "bi-gear" } // Added Settings
   ];
 
   return (

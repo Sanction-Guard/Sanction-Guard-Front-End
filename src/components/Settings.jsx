@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import './Settings.css';
-import img1 from '../Image/img.jpg'; // Default profile image
+import '../styles/Settings.css';
+import img1 from '../img/img.jpg'; // Default profile image
 
 function Settings() {
   // State for timezone settings
