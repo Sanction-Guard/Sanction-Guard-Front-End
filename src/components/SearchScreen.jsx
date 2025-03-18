@@ -13,6 +13,30 @@ function SearchScreen() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
+  const SIMILARITY_THRESHOLD = 70; // 70% threshold for display
+
+  // Function to export results to text file
+  const exportResultsToTextFile = (results) => {
+    const text = results.map(result => {
+      return `Name: ${result.firstName} ${result.secondName} ${result.thirdName}
+Similarity: ${result.similarityPercentage}%
+Type: ${result.type || 'N/A'}
+Source: ${result.source || 'N/A'}
+Country: ${result.country || 'N/A'}
+--------------------------`;
+    }).join('\n');
+
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `search-results-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -38,11 +62,17 @@ function SearchScreen() {
       }
 
       const results = await response.json();
-      setSearchResults(results);
+      
+      // Filter the results by similarity threshold (as a backup in case server doesn't filter)
+      const filteredResults = results.filter(result => 
+        parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
+      );
+      
+      setSearchResults(filteredResults);
       setExpandedResults({});
-      setTotalMatches((prev) => prev + results.length);
+      setTotalMatches((prev) => prev + filteredResults.length);
 
-      //sendind the stuff to database
+      // Sending the stuff to database
       const logResponse = await fetch('http://localhost:3001/api/search/search?', {
         method: 'POST',
         headers: {
@@ -61,17 +91,19 @@ function SearchScreen() {
         throw new Error('Failed to log search data');
       }
   
-
-      setAnalyticsData(prev => [
-        ...prev,
-        {
-          searchedName: searchTerm,
-          matchedName: results.length > 0 ? results[0].fullName : 'No Match',
-          dateOfBirth: results.length > 0 ? results[0].dateOfBirth : '-',
-          nicNumber: results.length > 0 ? results[0].nicNumber : '-',
-          timestamp: new Date().toLocaleString(),
-        }
-      ]);
+      // Only add analytics data if we have results above threshold
+      if (filteredResults.length > 0) {
+        setAnalyticsData(prev => [
+          ...prev,
+          {
+            searchedName: searchTerm,
+            matchedName: filteredResults[0].fullName,
+            dateOfBirth: filteredResults[0].dateOfBirth || '-',
+            nicNumber: filteredResults[0].nicNumber || '-',
+            timestamp: new Date().toLocaleString(),
+          }
+        ]);
+      }
 
     } catch (err) {
       console.error('Search error:', err);
@@ -154,9 +186,9 @@ function SearchScreen() {
       {searchResults && (
         <Card className="mb-4">
           <Card.Body>
-            <h5>Search Results</h5>
+            <h5>Search Results (Minimum {SIMILARITY_THRESHOLD}% Similarity)</h5>
             {searchResults.length === 0 ? (
-              <Alert variant="info">No matches found</Alert>
+              <Alert variant="info">No matches found with at least {SIMILARITY_THRESHOLD}% similarity</Alert>
             ) : (
               <div>
                 <p>Found {searchResults.length} potential matches</p>
@@ -307,7 +339,7 @@ function SearchScreen() {
                   variant="outline-secondary" 
                   onClick={() => {
                     if (searchResults && searchResults.length > 0) {
-                      exportResultsToTextFile(searchResults);  // Call the export function
+                      exportResultsToTextFile(searchResults);
                     } else {
                       alert('No results to export');
                     }
