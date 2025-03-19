@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
-import ReportsAnalytics from "./ReportsAnalytics";
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 
 function SearchScreen() {
   const { totalSearches, setTotalSearches, totalMatches, setTotalMatches, searchResults, setSearchResults } = useSearch();
@@ -13,7 +13,18 @@ function SearchScreen() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
+  const [flaggedResults, setFlaggedResults] = useState(() => {
+    // Load flagged results from local storage on initial render
+    const savedFlaggedResults = localStorage.getItem('flaggedResults');
+    return savedFlaggedResults ? JSON.parse(savedFlaggedResults) : [];
+  });
   const SIMILARITY_THRESHOLD = 70; // 70% threshold for display
+  const navigate = useNavigate(); // Hook for navigation
+
+  // Save flagged results to local storage whenever they change
+  useEffect(() => {
+    localStorage.setItem('flaggedResults', JSON.stringify(flaggedResults));
+  }, [flaggedResults]);
 
   // Function to export results to text file
   const exportResultsToTextFile = (results) => {
@@ -67,7 +78,21 @@ Country: ${result.country || 'N/A'}
       const filteredResults = results.filter(result => 
         parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
       );
-      
+
+      // Store flagged results (matches above 90%)
+      const flagged = filteredResults.filter(result => 
+        parseFloat(result.similarityPercentage) >= 90
+      );
+
+      // Append new flagged results to existing flagged results
+      setFlaggedResults((prev) => {
+        const newFlaggedResults = [...prev, ...flagged];
+        // Remove duplicates based on a unique identifier (e.g., result.id or full name)
+        const uniqueFlaggedResults = Array.from(new Set(newFlaggedResults.map(result => result.id || result.fullName)))
+          .map(id => newFlaggedResults.find(result => result.id === id || result.fullName === id));
+        return uniqueFlaggedResults;
+      });
+
       setSearchResults(filteredResults);
       setExpandedResults({});
       setTotalMatches((prev) => prev + filteredResults.length);
@@ -143,6 +168,11 @@ Country: ${result.country || 'N/A'}
     }));
   };
 
+  // Navigate to Alerts page with flagged results
+  const navigateToAlerts = () => {
+    navigate('/alerts', { state: { flaggedResults } });
+  };
+
   return (
     <Container>
       <Card className="mb-4">
@@ -182,6 +212,11 @@ Country: ${result.country || 'N/A'}
       </Card>
 
       {error && <Alert variant="danger">{error}</Alert>}
+
+      {/* Add a button to navigate to Alerts page */}
+      <Button variant="warning" onClick={navigateToAlerts} className="mb-4">
+        View Flagged Results ({flaggedResults.length})
+      </Button>
 
       {searchResults && (
         <Card className="mb-4">

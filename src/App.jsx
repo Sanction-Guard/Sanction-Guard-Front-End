@@ -11,6 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
 import { SearchProvider } from "./components/SearchContext.jsx"; // Ensure this import is correct
 import ModernNavigation from './components/ModernNavigation.jsx';
+import Alerts from './components/Alerts.jsx';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
               <Route path="/batch-processing" element={<BatchProcessing />} />
               <Route path="/reports-analytics" element={<ReportsAnalytics />} />
               <Route path="/audit-log" element={<AuditLog />} />
+              <Route path="/alerts" element={<Alerts />} />
             </Routes>
           </main>
         </div>
