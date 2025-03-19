@@ -1,0 +1,21 @@
+/* Create a new file called recharts-override.css */
+
+/* Isolate recharts styles to only affect recharts components */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-legend-wrapper,
+.recharts-tooltip-wrapper,
+.recharts-default-tooltip,
+.recharts-layer {
+    /* Reset any styles that might affect other elements */
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+/* Prevent recharts from affecting global styles */
+.recharts-wrapper svg {
+    overflow: visible;
+    /* Ensure SVGs don't break your layouts */
+    max-width: 100%;
+    max-height: 100%;
+}

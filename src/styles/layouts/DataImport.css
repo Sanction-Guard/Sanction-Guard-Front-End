@@ -1,0 +1,186 @@
+/* DataImport.css - Data import layout and component styles */
+
+/* Main container */
+.data-import-container {
+    width: 100%;
+    margin: 0;
+}
+
+/* Upload Card Styling */
+.upload-card {
+    border-top: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.upload-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.upload-area {
+    transition: all 0.3s ease;
+    background-color: var(--light);
+    border: 2px dashed var(--medium-gray);
+}
+
+.upload-area:hover {
+    border-color: var(--primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+/* Dashboard card styles */
+.dashboard-card {
+    transition: all 0.3s ease;
+    border-top: 4px solid var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Dashboard grid */
+.dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashboard-grid > * {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.dashboard-grid > *:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.dashboard-grid > *:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+/* Icon container styles */
+.w-16 {
+    width: 4rem;
+}
+
+.h-16 {
+    height: 4rem;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.rounded-full {
+    border-radius: 9999px;
+}
+
+/* Text styling */
+.text-2xl {
+    font-size: 1.5rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.text-gray-600 {
+    color: var(--dark-gray);
+}
+
+.text-gray-500 {
+    color: #6b7280;
+}
+
+/* Status badge styling */
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.status-badge.info {
+    background-color: var(--info);
+    color: white;
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in forwards;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Border utilities */
+.border-t {
+    border-top: 1px solid var(--light-gray);
+}
+
+.border-2 {
+    border-width: 2px;
+}
+
+.border-dashed {
+    border-style: dashed;
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        flex-direction: column;
+    }
+}

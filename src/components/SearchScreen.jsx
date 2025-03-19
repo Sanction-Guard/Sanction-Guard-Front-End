@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
 import ReportsAnalytics from "./ReportsAnalytics";
+import '../styles/layouts/SearchScreen.css';
+import '../styles/Base.css';
+import '../styles/components/Card.css';
+import '../styles/components/Button.css';
+import '../styles/components/Form.css';
+import '../styles/components/StatusBadge.css';
+import '../styles/components/Animation.css';
 
 function SearchScreen() {
   const { totalSearches, setTotalSearches, totalMatches, setTotalMatches, searchResults, setSearchResults } = useSearch();
@@ -92,25 +99,35 @@ function SearchScreen() {
   };
 
   return (
-    <Container>
-      <Card className="mb-4">
-        <Card.Body>
-          <h4 className="mb-3">Advanced Screening</h4>
+    <Container className="search-container fade-in" style={{ marginTop: '0' }}>
+      {/* Page header */}
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold mb-2">Advanced Screening</h1>
+        <p className="text-gray-600">Search our database for individuals or entities.</p>
+      </div>
+
+      {/* Search card */}
+      <Card className="mb-4 dashboard-card">
+        <Card.Body className="p-4">
           <Form onSubmit={(e) => {
             e.preventDefault();
             handleSearch();
           }}>
-            <div className="d-flex gap-2">
-              <Form.Control
-                type="text"
-                placeholder="Enter name, entity, or identifier..."
-                className="flex-grow-1"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="d-flex gap-2 search-form-wrapper">
+              <div className="position-relative flex-grow-1">
+                <i className="bi bi-search position-absolute" style={{ left: '15px', top: '12px', color: '#6c757d' }}></i>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter name, entity, or identifier..."
+                  className="search-bar pl-4"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ paddingLeft: '40px' }}
+                />
+              </div>
               <Dropdown>
-                <Dropdown.Toggle variant="outline-secondary" id="dropdown-filter">
-                  Filter by {searchType === 'individual' ? 'Individual' : 'Entity'}
+                <Dropdown.Toggle className="btn btn-secondary" id="dropdown-filter">
+                  <i className="bi bi-funnel me-1"></i> {searchType === 'individual' ? 'Individual' : 'Entity'}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => setSearchType('individual')}>Individual</Dropdown.Item>
@@ -118,188 +135,239 @@ function SearchScreen() {
                 </Dropdown.Menu>
               </Dropdown>
               <Button
-                variant="dark"
+                variant="primary"
                 type="submit"
+                className="btn btn-primary btn-ripple"
                 disabled={loading}
               >
-                {loading ? <Spinner animation="border" size="sm" /> : 'Screen'}
+                {loading ? (
+                  <div className="d-flex align-items-center">
+                    <span className="loading-spinner me-2"></span>
+                    <span>Searching...</span>
+                  </div>
+                ) : (
+                  <><i className="bi bi-search me-1"></i> Screen</>
+                )}
               </Button>
             </div>
           </Form>
         </Card.Body>
       </Card>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {/* Error message */}
+      {error && (
+        <Alert variant="danger" className="slide-up border-left-danger">
+          <div className="d-flex align-items-center">
+            <i className="bi bi-exclamation-circle text-danger me-2" style={{ fontSize: '1.25rem' }}></i>
+            <p className="mb-0">{error}</p>
+          </div>
+        </Alert>
+      )}
 
+      {/* Search results */}
       {searchResults && (
-        <Card className="mb-4">
-          <Card.Body>
-            <h5>Search Results</h5>
+        <Card className="mb-4 dashboard-card slide-up">
+          <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
+            <h5 className="mb-0 font-semibold">Search Results</h5>
+            <span className="status-badge info">
+              {searchResults.length} {searchResults.length === 1 ? 'match' : 'matches'}
+            </span>
+          </Card.Header>
+          <Card.Body className="p-3">
             {searchResults.length === 0 ? (
-              <Alert variant="info">No matches found</Alert>
+              <div className="p-5 text-center">
+                <i className="bi bi-search" style={{ fontSize: '3rem', color: '#6c757d', opacity: '0.5' }}></i>
+                <h3 className="mt-3 mb-1 font-semibold">No matches found</h3>
+                <p className="text-gray-600 mb-0">Try adjusting your search term or filters.</p>
+              </div>
             ) : (
               <div>
-                <p>Found {searchResults.length} potential matches</p>
-                {searchResults.map((result, index) => (
-                  <Card key={index} className="mb-3">
-                    <Card.Header className="d-flex justify-content-between align-items-center bg-light">
-                      <Col xs={5}>
-                        <h6 className="mb-0">
-                          {result.firstName} {result.secondName} {result.thirdName}
-                        </h6>
-                      </Col>
-
-                      <Col xs={4} className="text-center">
-                        <strong>Similarity: {result.similarityPercentage}%</strong>
-                      </Col>
-
-                      <Col className="d-flex justify-content-end">
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          onClick={() => toggleExpand(index)}
-                        >
-                          {expandedResults[index] ? 'Hide Details' : 'More Info'}
-                        </Button>
-                      </Col>
-                    </Card.Header>
-                    {expandedResults[index] && (
-                      <Card.Body>
-                        <table className="table table-bordered table-sm">
-                          <tbody>
-                            {result.firstName && (
-                              <tr>
-                                <th>First Name</th>
-                                <td>{result.firstName}</td>
-                              </tr>
-                            )}
-                            {result.secondName && (
-                              <tr>
-                                <th>Second Name</th>
-                                <td>{result.secondName}</td>
-                              </tr>
-                            )}
-                            {result.thirdName && (
-                              <tr>
-                                <th>Third Name</th>
-                                <td>{result.thirdName}</td>
-                              </tr>
-                            )}
-                            {result.full_name && (
-                              <tr>
-                                <th>Full Name</th>
-                                <td>{result.full_name}</td>
-                              </tr>
-                            )}
-                            {result.aliasNames && result.aliasNames.length > 0 && (
-                              <tr>
-                                <th>Alias Names</th>
-                                <td>{result.aliasNames.join(', ')}</td>
-                              </tr>
-                            )}
-                            {result.source && (
-                              <tr>
-                                <th>Source</th>
-                                <td>{result.source}</td>
-                              </tr>
-                            )}
-                            {result.type && (
-                              <tr>
-                                <th>Type</th>
-                                <td>{result.type}</td>
-                              </tr>
-                            )}
-                            {result.country && (
-                              <tr>
-                                <th>Country</th>
-                                <td>{result.country}</td>
-                              </tr>
-                            )}
-                            {result.similarityPercentage && (
-                              <tr>
-                                <th>Similarity %</th>
-                                <td>{result.similarityPercentage}%</td>
-                              </tr>
-                            )}
-                            {result.score && (
-                              <tr>
-                                <th>Score</th>
-                                <td>{result.score}</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </Card.Body>
-                    )}
-                  </Card>
-                ))}
+                <p className="mb-3">Found <span className="text-primary font-semibold">{searchResults.length}</span> potential matches</p>
+                {searchResults.map((result, index) => {
+                  const similarity = result.similarityPercentage || 0;
+                  let badgeClass = "info";
+                  if (similarity > 85) badgeClass = "danger";
+                  else if (similarity > 70) badgeClass = "warning";
+                  
+                  return (
+                    <Card key={index} className="mb-3 result-card">
+                      <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
+                        <Col xs={5}>
+                          <h6 className="mb-0 font-semibold">
+                            {result.firstName} {result.secondName} {result.thirdName}
+                          </h6>
+                        </Col>
+                        
+                        <Col xs={4} className="text-center">
+                          <span className={`status-badge ${badgeClass}`}>
+                            Similarity: {result.similarityPercentage}%
+                          </span>
+                        </Col>
+                        
+                        <Col className="d-flex justify-content-end">
+                          <Button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => toggleExpand(index)}
+                          >
+                            <i className={`bi ${expandedResults[index] ? 'bi-dash-lg' : 'bi-plus-lg'} me-1`}></i>
+                            {expandedResults[index] ? 'Hide Details' : 'More Info'}
+                          </Button>
+                        </Col>
+                      </Card.Header>
+                      {expandedResults[index] && (
+                        <Card.Body className="p-3">
+                          <table className="table table-bordered table-sm">
+                            <tbody>
+                              {result.firstName && (
+                                <tr>
+                                  <th className="bg-light">First Name</th>
+                                  <td>{result.firstName}</td>
+                                </tr>
+                              )}
+                              {result.secondName && (
+                                <tr>
+                                  <th className="bg-light">Second Name</th>
+                                  <td>{result.secondName}</td>
+                                </tr>
+                              )}
+                              {result.thirdName && (
+                                <tr>
+                                  <th className="bg-light">Third Name</th>
+                                  <td>{result.thirdName}</td>
+                                </tr>
+                              )}
+                              {result.full_name && (
+                                <tr>
+                                  <th className="bg-light">Full Name</th>
+                                  <td>{result.full_name}</td>
+                                </tr>
+                              )}
+                              {result.aliasNames && result.aliasNames.length > 0 && (
+                                <tr>
+                                  <th className="bg-light">Alias Names</th>
+                                  <td>{result.aliasNames.join(', ')}</td>
+                                </tr>
+                              )}
+                              {result.source && (
+                                <tr>
+                                  <th className="bg-light">Source</th>
+                                  <td>{result.source}</td>
+                                </tr>
+                              )}
+                              {result.type && (
+                                <tr>
+                                  <th className="bg-light">Type</th>
+                                  <td>{result.type}</td>
+                                </tr>
+                              )}
+                              {result.country && (
+                                <tr>
+                                  <th className="bg-light">Country</th>
+                                  <td>{result.country}</td>
+                                </tr>
+                              )}
+                              {result.similarityPercentage && (
+                                <tr>
+                                  <th className="bg-light">Similarity %</th>
+                                  <td>{result.similarityPercentage}%</td>
+                                </tr>
+                              )}
+                              {result.score && (
+                                <tr>
+                                  <th className="bg-light">Score</th>
+                                  <td>{result.score}</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </Card.Body>
+                      )}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </Card.Body>
         </Card>
       )}
 
-      <Row>
-        <Col md={4} className="equal-height-col">
-          <Card>
-            <Card.Body>
-              <h5 className="m-3">Today's Activity</h5>
-              <div className="d-flex justify-content-between mb-3">
-                <span>Searches</span>
-                <span>{totalSearches}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span>Matches</span>
-                <span>{totalMatches}</span>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4} className="equal-height-col">
-          <Card>
-            <Card.Body>
-              <h5 className="m-3">Database Status</h5>
-              <div className="d-flex justify-content-between mb-3">
-                <span>Total Records</span>
-                <span>{totalRecords}</span>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span>Last Updated</span>
-                <span>{lastUpdated || 'N/A'}</span>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4} className="equal-height-col">
-          <Card>
-            <Card.Body>
-              <h5 className="m-2">Quick Actions</h5>
-              <div className="d-grid gap-1">
-                <Button variant="outline-primary" onClick={() => {
-                  fetchDatabaseStatus();
-                  setTotalSearches(0);
-                  setTotalMatches(0);
-                  setSearchResults(null);
-                }}>
-                  <i className="bi bi-arrow-clockwise"></i> Refresh Data
-                </Button>
-                <Button 
-                  variant="outline-secondary" 
-                  onClick={() => {
-                    if (searchResults && searchResults.length > 0) {
-                      exportResultsToTextFile(searchResults);  // Call the export function
-                    } else {
-                      alert('No results to export');
-                    }
-                  }}
-                >
-                  <i className="bi bi-download"></i> Export Results
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      {/* Stats and actions grid */}
+      <div className="mt-4 mb-4">
+        <h5 className="mb-3">Dashboard</h5>
+        <Row>
+          <Col md={4} className="mb-4 slide-up" style={{ animationDelay: '0.1s' }}>
+            <Card className="dashboard-card h-100">
+              <Card.Body className="p-4">
+                <h5 className="text-lg font-medium text-gray-600 mb-3">
+                  <i className="bi bi-activity me-2"></i>Today's Activity
+                </h5>
+                <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+                  <span className="font-medium">Searches</span>
+                  <span className="stat-value" style={{ fontSize: '1.25rem' }}>{totalSearches}</span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                  <span className="font-medium">Matches</span>
+                  <span className="stat-value" style={{ fontSize: '1.25rem' }}>{totalMatches}</span>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+          
+          <Col md={4} className="mb-4 slide-up" style={{ animationDelay: '0.2s' }}>
+            <Card className="dashboard-card h-100">
+              <Card.Body className="p-4">
+                <h5 className="text-lg font-medium text-gray-600 mb-3">
+                  <i className="bi bi-database me-2"></i>Database Status
+                </h5>
+                <div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+                  <span className="font-medium">Total Records</span>
+                  <span className="stat-value" style={{ fontSize: '1.25rem' }}>{totalRecords}</span>
+                </div>
+                <div className="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                  <span className="font-medium">Last Updated</span>
+                  <span className="stat-value" style={{ fontSize: '1.25rem' }}>{lastUpdated || 'N/A'}</span>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+          
+          <Col md={4} className="mb-4 slide-up" style={{ animationDelay: '0.3s' }}>
+            <Card className="dashboard-card h-100">
+              <Card.Body className="p-4">
+                <h5 className="text-lg font-medium text-gray-600 mb-3">
+                  <i className="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+                <div className="d-grid gap-2">
+                  <Button 
+                    className="btn btn-secondary btn-ripple w-100"
+                    onClick={() => {
+                      fetchDatabaseStatus();
+                      setTotalSearches(0);
+                      setTotalMatches(0);
+                      setSearchResults(null);
+                    }}
+                  >
+                    <i className="bi bi-arrow-clockwise me-2"></i> Refresh Data
+                  </Button>
+                  <Button 
+                    className="btn btn-secondary btn-ripple w-100" 
+                    onClick={() => {
+                      if (searchResults && searchResults.length > 0) {
+                        // Call the export function
+                        alert('Export function will be called');
+                      } else {
+                        alert('No results to export');
+                      }
+                    }}
+                  >
+                    <i className="bi bi-download me-2"></i> Export Results
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </div>
     </Container>
   );
 }
