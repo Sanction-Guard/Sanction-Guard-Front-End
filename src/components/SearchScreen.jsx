@@ -57,19 +57,6 @@ function SearchScreen() {
 
       const results = await response.json();
 
-      const resultTime = new Date();
-      setSearchResultTimes(prev => [...prev, {
-        action: 'Search Results Displayed',
-        timestamp: resultTime.toISOString(),
-        searchTerm,
-        searchType, // Adding searchType for more complete data
-        resultCount: results.length,
-        matchDetails: results.length > 0 ? {
-          topMatchSimilarity: results[0].similarityPercentage || 0,
-          sourcesFound: [...new Set(results.map(r => r.source).filter(Boolean))]
-        } : null
-      }]);
-
       setSearchResults(results);
       setExpandedResults({});
       setTotalMatches((prev) => prev + results.length);
@@ -84,6 +71,21 @@ function SearchScreen() {
           timestamp: new Date().toLocaleString(),
         }
       ]);
+
+      const resultTime = new Date();
+      setSearchResultTimes(prev => [...prev, {
+        action: 'Search Results Displayed',
+        timestamp: resultTime.toISOString(),
+        searchTerm,
+        searchType, // Adding searchType for more complete data
+        resultCount: results.length,
+        matchDetails: results.length > 0 ? {
+          topMatchSimilarity: results[0].similarityPercentage || 0,
+          sourcesFound: [...new Set(results.map(r => r.source).filter(Boolean))]
+        } : null
+      }]);
+
+      
 
     } catch (err) {
       console.error('Search error:', err);

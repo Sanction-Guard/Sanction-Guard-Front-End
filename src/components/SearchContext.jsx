@@ -1,31 +1,3 @@
-// import { createContext, useContext, useState } from 'react';
-
-// const SearchContext = createContext();
-
-// export const SearchProvider = ({ children }) => {
-//   const [totalSearches, setTotalSearches] = useState(0);
-//   const [totalMatches, setTotalMatches] = useState(0);
-//   const [searchResults, setSearchResults] = useState([]);
-//   const [analyticsData, setAnalyticsData] = useState([]); // Store analytics data
-  
-//   return (
-//     <SearchContext.Provider value={{
-//       totalSearches,
-//       setTotalSearches,
-//       totalMatches,
-//       setTotalMatches,
-//       searchResults,
-//       setSearchResults,
-//       analyticsData,
-//       setAnalyticsData
-//     }}>
-//       {children}
-//     </SearchContext.Provider>
-//   );
-// };
-
-// export const useSearch = () => useContext(SearchContext);
-
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const SearchContext = createContext();
@@ -38,35 +10,57 @@ export const SearchProvider = ({ children }) => {
   const [buttonClickTimes, setButtonClickTimes] = useState([]);
   const [searchResultTimes, setSearchResultTimes] = useState([]);
   const [matchCount, setMatchCount] = useState(0);
+  const [totalProcessingTime, setTotalProcessingTime] = useState([]);
   
   // Calculate average processing time between search button clicks and results
-  const calculateAvgProcessingTime = () => {
-    if (!buttonClickTimes.length || !searchResultTimes.length) return "0.0";
+const calculateAvgProcessingTime = () => {
+  // Add debug logging to see what data we're working with
+  console.log("Button clicks:", buttonClickTimes);
+  console.log("Search results:", searchResultTimes);
+  
+  if (!buttonClickTimes.length || !searchResultTimes.length) {
+    console.log("No data for calculation");
+    return "0.0";
+  }
+  
+  let totalProcessingTime = 0;
+  let countedPairs = 0;
+  
+  // Match button clicks with their results by searchTerm
+  buttonClickTimes.forEach(clickEvent => {
+    console.log("Processing click event:", clickEvent);
     
-    let totalProcessingTime = 0;
-    let countedPairs = 0;
-    
-    // Match button clicks with their results by searchTerm
-    buttonClickTimes.forEach(clickEvent => {
-      if (clickEvent.action === "Search Button Click" && clickEvent.searchTerm) {
-        // Find corresponding result event
-        const resultEvent = searchResultTimes.find(
-          result => result.searchTerm === clickEvent.searchTerm && 
-                   new Date(result.timestamp) > new Date(clickEvent.timestamp)
-        );
+    if (clickEvent.action === "Search Button Click" && clickEvent.searchTerm) {
+      // Find corresponding result event that occurs after this click
+      const matchingResults = searchResultTimes.filter(
+        result => result.searchTerm === clickEvent.searchTerm && 
+                 new Date(result.timestamp) > new Date(clickEvent.timestamp)
+      );
+      
+      console.log(`Found ${matchingResults.length} matching results for term "${clickEvent.searchTerm}"`);
+      
+      // Sort by timestamp to find the closest match
+      if (matchingResults.length > 0) {
+        const closestResult = matchingResults.sort((a, b) => 
+          new Date(a.timestamp) - new Date(b.timestamp)
+        )[0];
         
-        if (resultEvent) {
-          const clickTime = new Date(clickEvent.timestamp);
-          const resultTime = new Date(resultEvent.timestamp);
-          const timeDiffInSeconds = (resultTime - clickTime) / 1000;
-          totalProcessingTime += timeDiffInSeconds;
-          countedPairs++;
-        }
+        const clickTime = new Date(clickEvent.timestamp);
+        const resultTime = new Date(closestResult.timestamp);
+        const timeDiffInSeconds = (resultTime - clickTime) / 1000;
+        
+        console.log(`Time difference: ${timeDiffInSeconds}s between click and result`);
+        
+        totalProcessingTime += timeDiffInSeconds;
+        countedPairs++;
       }
-    });
-    
-    return countedPairs > 0 ? (totalProcessingTime / countedPairs).toFixed(1) : "0.0";
-  };
+    }
+  });
+  
+  console.log(`Total processing time: ${totalProcessingTime}, counted pairs: ${countedPairs}`);
+  
+  return countedPairs > 0 ? (totalProcessingTime / countedPairs).toFixed(1) : "0.0";
+};
   
   // Format activities for the dashboard
   const getRecentActivities = () => {
@@ -152,7 +146,7 @@ export const SearchProvider = ({ children }) => {
         trend: 'up', 
         percentage: '12.5', 
         color: '#4361ee',
-        data: searchCounts
+        data: matchCount
       },
       { 
         id: 2, 
@@ -182,6 +176,8 @@ export const SearchProvider = ({ children }) => {
       setSearchResultTimes,
       matchCount,
       setMatchCount,
+      totalProcessingTime,
+      setTotalProcessingTime,
       getRecentActivities,
       getSearchMetrics
     }}>
