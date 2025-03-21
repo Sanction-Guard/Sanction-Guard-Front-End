@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '..//AuthContext.jsx';
 import '../styles/Login.css';
-import logoImage from '../img/logo.png'; // Make sure to add this image to your assets folder
+import logoImage from '../img/logo.png'; 
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Use the login function from context
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,12 +29,8 @@ function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token and role in localStorage
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.role);
-
-        // Redirect to dashboard
-        navigate('/');
+        login(data.token, data.role); // Update context instead of localStorage directly
+        navigate('/'); // Navigate to dashboard
       } else {
         setError(data.message || 'Invalid email or password. Please try again.');
       }
@@ -107,9 +105,6 @@ function Login() {
               </button>
             </form>
 
-            <div className="login-footer">
-              <p>Don't have an account? <a href="/register">Request access</a></p>
-            </div>
           </div>
         </div>
       </div>
@@ -125,7 +120,7 @@ function Login() {
                 </svg>
               </div>
               <h3>Real-time screening</h3>
-              <p>Instant sanctions and PEP checks with advanced matching algorithms</p>
+              <p>Instant sanctions checks with advanced matching algorithms</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon">
