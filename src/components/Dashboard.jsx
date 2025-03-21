@@ -13,9 +13,9 @@ const Dashboard = () => {
   const { 
     totalSearches, 
     totalMatches, 
+    searchResult,
     getRecentActivities, 
-    getSearchMetrics,
-    matchCount 
+    getSearchMetrics
   } = useSearch();
   
   // Get dynamic metrics from context
@@ -158,7 +158,7 @@ const Dashboard = () => {
               <h4 className="text-gray-600 mb-1">Match Rate</h4>
               <div className="text-2xl font-bold">
                 {totalSearches > 0 
-                  ? `${((totalSearches / totalMatches) * 100).toFixed(1)}%` 
+                  ? `${((searchResult / totalMatches) * 100).toFixed(1)}%` 
                   : '0%'}
               </div>
             </div>
