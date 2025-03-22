@@ -11,6 +11,7 @@ import DataImport from './components/DataImport.jsx';
 import ReportsAnalytics from './components/ReportsAnalytics.jsx';
 import AuditLog from './components/AuditLog.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Alerts from './components/Alerts.jsx';
 
 
 function App() {
@@ -31,6 +32,8 @@ function App() {
             <Route path="/data-import" element={<DataImport />} />
             <Route path="/reports-analytics" element={<ReportsAnalytics />} />
             <Route path="/audit-log" element={<AuditLog />} />
+            <Route path="/alerts" element={<Alerts />} />
+            
           </Routes>
           </main>
         </div>
