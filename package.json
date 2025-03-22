@@ -29,7 +29,8 @@
     "react-icons": "^4.12.0",
     "react-router-dom": "^6.30.0",
     "string-similarity": "^4.0.4",
-    "sweetalert2": "^11.17.2"
+    "sweetalert2": "^11.17.2",
+    "recharts": "^2.15.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import '../styles/Settings.css';
+import '../styles/layouts/Settings.css';
 import img1 from '../img/img.jpg'; // Default profile image
 
 function Settings() {

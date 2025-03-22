@@ -1,0 +1,29 @@
+/* Form controls */
+.form-control {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--medium-gray);
+    padding: 0.75rem 1rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    outline: none;
+}
+
+.search-bar {
+    border-radius: var(--radius-full);
+    border: 1px solid var(--medium-gray);
+    padding: 0.75rem 1.25rem;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+}
+
+.search-bar:focus {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+    outline: none;
+}

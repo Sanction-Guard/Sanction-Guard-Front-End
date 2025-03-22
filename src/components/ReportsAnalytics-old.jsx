@@ -1,14 +1,11 @@
+
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import React, { useState } from 'react';
-import '../styles/Base.css';
-import '../styles/components/Card.css';
-import '../styles/components/Button.css';
-import '../styles/components/StatusBadge.css';
-import '../styles/components/Animation.css';
-import '../styles/layouts/ReportsAnalytics.css';
+
+
 
 import {
   Chart as ChartJS,
@@ -85,6 +82,7 @@ function ReportsAnalytics() {
 
 
     //pdf blob
+
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     setLastReportUrl(pdfUrl);
@@ -119,6 +117,7 @@ function ReportsAnalytics() {
   
 
   //second report
+
   const generateRiskPDF = () => {
     if (!searchResults || searchResults.length === 0) {
       alert("No data to generate the risk report.");
@@ -149,6 +148,8 @@ function ReportsAnalytics() {
         result.similarityPercentage ? result.similarityPercentage + '%' : '-',
         riskLevel
       ];
+
+      
     });
 
     autoTable(doc, {
@@ -159,122 +160,120 @@ function ReportsAnalytics() {
       headStyles: { fillColor: [41, 128, 185], textColor: 255 },
     });
 
+    doc.save(`risk_analysis_${date.replace(/[\s:/]/g, '_')}.pdf`);
+
     //pdf blob for second pdf
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     setLastReportUrl(pdfUrl);
-    setLastReportName(`risk_analysis_${date.replace(/[\s:/]/g, '_')}.pdf`);
-    doc.save(`risk_analysis_${date.replace(/[\s:/]/g, '_')}.pdf`);
-  };
+    setLastReportName(`screening_summary_${date.replace(/[\s:/]/g, '_')}.pdf`);
+    doc.save(`screening_summary_${date.replace(/[\s:/]/g, '_')}.pdf`);
+};
 
-  //compilance report
-  const generateComplianceReport = () => {
-    const doc = new jsPDF();
-    const date = new Date().toLocaleString();
+//compilance report
 
-    doc.setFontSize(18);
-    doc.text('Compliance Report', 14, 22);
-    doc.setFontSize(12);
-    doc.text(`Generated on: ${date}`, 14, 30);
-    doc.text(`Total Searches: ${totalSearches}`, 14, 40);
-    doc.text(`Total Users Engaged: ${totalMatches}`, 14, 50); // Assuming totalMatches represents active users
-    doc.text(`Match Rate: ${matchRate}%`, 14, 60);
-    doc.text(`Avg Response Time: ${responseTime} sec`, 14, 70);
+const generateComplianceReport = () => {
+  const doc = new jsPDF();
+  const date = new Date().toLocaleString();
 
-    const complianceData = [
-      ['Check', 'Status'],
-      ['System Uptime', '99.9%'],
-      ['Response Time < 3s', responseTime < 3 ? 'Pass' : 'Fail'],
-      ['Data Integrity Checks', 'Pass'], // Placeholder values
-      ['Failed Compliance Checks', '0'], // You might need real compliance tracking
-    ];
+  doc.setFontSize(18);
+  doc.text('Compliance Report', 14, 22);
+  doc.setFontSize(12);
+  doc.text(`Generated on: ${date}`, 14, 30);
+  doc.text(`Total Searches: ${totalSearches}`, 14, 40);
+  doc.text(`Total Users Engaged: ${totalMatches}`, 14, 50); // Assuming totalMatches represents active users
+  doc.text(`Match Rate: ${matchRate}%`, 14, 60);
+  doc.text(`Avg Response Time: ${responseTime} sec`, 14, 70);
 
-    autoTable(doc, {
-      startY: 80,
-      head: [['Compliance Metric', 'Status']],
-      body: complianceData,
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-    });
+  const complianceData = [
+    ['Check', 'Status'],
+    ['System Uptime', '99.9%'],
+    ['Response Time < 3s', responseTime < 3 ? 'Pass' : 'Fail'],
+    ['Data Integrity Checks', 'Pass'], // Placeholder values
+    ['Failed Compliance Checks', '0'], // You might need real compliance tracking
+  ];
 
-    //pdf blob for third pdf
-    const pdfBlob = doc.output('blob');
+  autoTable(doc, {
+    startY: 80,
+    head: [['Compliance Metric', 'Status']],
+    body: complianceData,
+    theme: 'grid',
+    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+  });
+
+  doc.save(`Risk_Analysis_Report_${date.replace(/[\s:/]/g, '_')}.pdf`);
+
+  //pdf blob for third pdf
+
+  const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     setLastReportUrl(pdfUrl);
     setLastReportName(`Compilance_report_${date.replace(/[\s:/]/g, '_')}.pdf`);
     doc.save(`Compilance_report_${date.replace(/[\s:/]/g, '_')}.pdf`);
-  };
+};
+
+
+//ui for buttons etc. 
+
+// 3 types of generating reports
 
   return (
-    <div className="reports-container fade-in">
-      {/* Page header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold mb-2">Reports & Analytics</h1>
-        <p className="text-gray-600">Generate reports and view analytics for your screening activities.</p>
-      </div>
-      
-      {/* Report generation options */}
-      <div className="report-options-grid">
-        {/* Screening Summary Card */}
-        <Card className="report-card report-option-card slide-up delay-1">
-          <Card.Body className="p-4">
-            <div className="icon-container" style={{ backgroundColor: 'rgba(67, 97, 238, 0.1)' }}>
-              <i className="bi bi-file-earmark-text" style={{ color: 'var(--primary)', fontSize: '1.5rem' }}></i>
-            </div>
-            <h5 className="font-semibold mb-2">Screening Summary</h5>
-            <p className="text-gray-600 mb-4">Daily screening activities and matches</p>
-            <Button className="btn btn-primary btn-ripple w-full" onClick={generatePDF}>
-              Generate PDF
-            </Button>
-          </Card.Body>
-        </Card>
-        
-        {/* Risk Analysis Card */}
-        <Card className="report-card report-option-card slide-up delay-2">
-          <Card.Body className="p-4">
-            <div className="icon-container" style={{ backgroundColor: 'rgba(76, 201, 240, 0.1)' }}>
-              <i className="bi bi-shield-check" style={{ color: 'var(--secondary)', fontSize: '1.5rem' }}></i>
-            </div>
-            <h5 className="font-semibold mb-2">Risk Analysis</h5>
-            <p className="text-gray-600 mb-4">Risk levels and screening patterns</p>
-            <Button className="btn btn-primary btn-ripple w-full" onClick={generateRiskPDF}>
-              Generate
-            </Button>
-          </Card.Body>
-        </Card>
-        
-        {/* Compliance Report Card */}
-        <Card className="report-card report-option-card slide-up delay-3">
-          <Card.Body className="p-4">
-            <div className="icon-container" style={{ backgroundColor: 'rgba(247, 37, 133, 0.1)' }}>
-              <i className="bi bi-clipboard-data" style={{ color: 'var(--accent)', fontSize: '1.5rem' }}></i>
-            </div>
-            <h5 className="font-semibold mb-2">Compliance Report</h5>
-            <p className="text-gray-600 mb-4">System usage and compliance tracking</p>
-            <Button className="btn btn-primary btn-ripple w-full" onClick={generateComplianceReport}>
-              Generate
-            </Button>
-          </Card.Body>
-        </Card>
-      </div>
+    <Container>
+      <Row className="mb-4">
+        <Col md={4}>
+          <Card>
+            <Card.Body>
+              <h5>Screening Summary</h5>
+              <p className="text-muted">Daily screening activities and matches</p>
+              <Button variant="primary" className="w-100" onClick={generatePDF}>
+                Generate PDF
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card>
+            <Card.Body>
+              <h5>Risk Analysis</h5>
+              <p className="text-muted">Risk levels and screening patterns</p>
+              <Button variant="primary" className="w-100" onClick={generateRiskPDF}>
+                Generate
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card>
+            <Card.Body>
+              <h5>Compliance Report</h5>
+              <p className="text-muted">System usage and compliance tracking</p>
+              <Button variant="primary" className="w-100" onClick={generateComplianceReport}>
+                Generate
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-      {/* Generated Reports Section */}
-      <Card className="report-card slide-up" style={{ animationDelay: '0.3s' }}>
-        <Card.Header className="p-4 border-b">
-          <h4 className="font-semibold">Generated Reports</h4>
-        </Card.Header>
-        <Card.Body className="p-4">
-          <div className="flex justify-between items-center">
+  {/* Generated report section to preview and download */}
+
+      <Card className="mb-4">
+        <Card.Body>
+          <h4>Generated Reports</h4>
+          <div className="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h4 className="font-medium mb-1">Latest Screening Report</h4>
-              <h5 className="text-gray-600 mb-1">{lastReportName || 'No Report Available'}</h5>
-              <small className="text-gray-500">{new Date().toLocaleDateString()}</small>
+              <h4 className="mb-1">Latest Screening Report</h4>
+              <h5 className="mb-1">{lastReportName || 'No Report Available'}</h5>
+              <small className="text-muted">{new Date().toLocaleDateString()}</small>
             </div>
+
+            {/* functional buttons */}
+
             <div>
-              <Button className="btn btn-secondary btn-sm mr-2" onClick={handlePreview} disabled={!lastReportUrl}>
+              <Button variant="outline-secondary" className="me-2" onClick={handlePreview} disabled={!lastReportUrl}>
                 Preview
               </Button>
-              <Button className="btn btn-primary btn-sm" onClick={handleDownload} disabled={!lastReportUrl}>
+              <Button variant="dark" onClick={handleDownload} disabled={!lastReportUrl}>
                 Download
               </Button>
             </div>
@@ -282,39 +281,46 @@ function ReportsAnalytics() {
         </Card.Body>
       </Card>
 
-      {/* Analytics Dashboard */}
-      <div className="mt-6 slide-up" style={{ animationDelay: '0.4s' }}>
-        <h3 className="text-xl font-semibold mb-3">Analytics Dashboard</h3>
-        
-        {/* Stats cards */}
-        <div className="dashboard-grid">
-          {/* Total Screenings Card */}
-          <div className="analytics-card slide-up" style={{ animationDelay: '0.5s' }}>
+      {/* Analytics dashboard */}
+
+      <h3 className="mb-3">Analytics Dashboard</h3>
+      <Row>
+        <Col md={4}>
+          <Card className="analytics-card">
+          
+            {/* Total screenings */}
+
             <div className="stat-label">Total Screenings</div>
             <div className="stat-value">{totalSearches}</div>
             <div className={`trend-indicator ${totalSearches > 10 ? 'trend-up' : 'trend-down'}`}>
               {totalSearches > 10 ? '↑ Increase' : '↓ Decrease'}
             </div>
-          </div>
-          
-          {/* Match Rate Card */}
-          <div className="analytics-card slide-up" style={{ animationDelay: '0.6s' }}>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="analytics-card">
+
+            {/* match rate */}
+
             <div className="stat-label">Match Rate</div>
             <div className="stat-value">{matchRate}%</div>
             <div className={`trend-indicator ${matchRate > 50 ? 'trend-up' : 'trend-down'}`}>
               {matchRate > 50 ? '↑ High' : '↓ Low'}
             </div>
-          </div>
-          
-          {/* Response Time Card */}
-          <div className="analytics-card slide-up" style={{ animationDelay: '0.7s' }}>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="analytics-card">
+
+            {/* Response time */}
+
             <div className="stat-label">Avg Response Time</div>
             <div className="stat-value">{responseTime} sec</div>
             <div className="trend-indicator trend-up">Stable</div>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 }
 

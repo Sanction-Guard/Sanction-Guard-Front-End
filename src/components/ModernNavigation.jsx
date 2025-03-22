@@ -1,40 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Image } from 'react-bootstrap';
-import '../styles/ModernNavigation.css';
+import '../styles/Base.css';
+import '../styles/layouts/Navigation.css';
+import '../styles/components/Animation.css';
+import logo from '../img/logo.png';
 
 const ModernNavigation = () => {
   const location = useLocation();
-  const [activeItem, setActiveItem] = useState(location.pathname);
+  const [activeItem, setActiveItem] = useState(location.pathname || "/");
   
   useEffect(() => {
-    setActiveItem(location.pathname);
+    setActiveItem(location.pathname || "/");
   }, [location]);
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: "bi-speedometer2" },
-    { path: "/data-import", label: "Data Import", icon: "bi-upload" },
     { path: "/search-screen", label: "Search", icon: "bi-search" },
-    { path: "/batch-processing", label: "Processing", icon: "bi-cpu" },
-    { path: "/reports-analytics", label: "Analytics", icon: "bi-bar-chart" },
-    { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" },
-    { path: "/settings", label: "Settings", icon: "bi-gear" } // Added Settings
+    { path: "/batch-processing", label: "Batch Processing", icon: "bi-cpu" },
+    { path: "/data-import", label: "Data Import", icon: "bi-upload" },
+    { path: "/reports-analytics", label: "Reports & Analytics", icon: "bi-bar-chart" },
+    { path: "/audit-log", label: "Audit Log", icon: "bi-journal-text" }
+  ];
+
+  // Bottom navigation items (Settings and Alerts)
+  const bottomNavItems = [
+    { path: "/alerts", label: "Alerts", icon: "bi-bell" },
+    { path: "/settings", label: "Settings", icon: "bi-gear" }
   ];
 
   return (
     <nav className="modern-nav">
-      <div className="logo-container">
-        
-        <h1 className="app-logo">
-          <Image 
-                    src="/src/img/logo.png" 
-                    alt="Sanction Guard Logo"
-                    width="30"
-                    height="30"
-                    className="me-2"
-                  />
-                  <span className="text-dark">Sanction Guard</span></h1>
-                  {/* ***************ADD ENTERPRISE EDITION***************** */}
+      <div className="logo-container container-fluid">
+        <div className="app-logo-wrapper">
+          <img src={logo} alt="Logo" className="app-logo-image" />
+          <div className="app-logo-text">
+            <h1 className="app-logo">SanctionGuard</h1>
+            <h6>Enterprise edition</h6>
+          </div>
+        </div>
       </div>
       
       <ul className="nav-items">
@@ -48,6 +51,21 @@ const ModernNavigation = () => {
           </li>
         ))}
       </ul>
+
+      {/* Bottom nav items */}
+      <div className="bottom-nav-container">
+        <ul className="bottom-nav-items">
+          {bottomNavItems.map((item) => (
+            <li key={item.path} className={activeItem === item.path ? "nav-item active" : "nav-item"}>
+              <Link to={item.path} className="nav-link" onClick={() => setActiveItem(item.path)}>
+                <i className={`bi ${item.icon}`}></i>
+                <span className="nav-label">{item.label}</span>
+                {activeItem === item.path && <span className="nav-indicator" />}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
       
       <div className="nav-bottom">
         <div className="user-profile">
