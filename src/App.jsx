@@ -10,6 +10,8 @@ import BatchProcessing from './components/BatchProcessing.jsx';
 import DataImport from './components/DataImport.jsx';
 import ReportsAnalytics from './components/ReportsAnalytics.jsx';
 import AuditLog from './components/AuditLog.jsx';
+import Settings from './components/Settings.jsx'; // Your Settings component
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -31,6 +33,7 @@ function App() {
             <Route path="/data-import" element={<DataImport />} />
             <Route path="/reports-analytics" element={<ReportsAnalytics />} />
             <Route path="/audit-log" element={<AuditLog />} />
+            <Route path="/settings" element={<Settings />} /> {/* Added Settings route */}
           </Routes>
           </main>
         </div>
