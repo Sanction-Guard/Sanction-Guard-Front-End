@@ -45,7 +45,7 @@ function App() {
               <Route path="/data-import" element={<DataImport />} />
               <Route path="/reports-analytics" element={<ReportsAnalytics />} />
               <Route path="/audit-log" element={<AuditLog />} />
-              <Route path="/audit-log" element={<AuditLog />} />
+              <Route path="/alerts" element={<Alerts />} />
               <Route path="/settings" element={<Settings />} /> {/* Added Settings route */}
           </Routes>
           </main>
