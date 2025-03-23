@@ -9,8 +9,6 @@
     gap: 1.5rem;
 }
 
-/* Dashboard.css - Dashboard layout and component styles */
-
 /* Staggered animation for grid items */
 .dashboard-grid>* {
     animation: fadeIn 0.5s ease forwards;

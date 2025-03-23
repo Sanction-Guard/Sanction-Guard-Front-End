@@ -23,32 +23,6 @@ const Dashboard = () => {
       ]
     },
     { 
-      id: 2, 
-      title: 'Processing Rate', 
-      value: '98.2%', 
-      trend: 'up', 
-      percentage: '4.3', 
-      color: '#4cc9f0',
-      data: [
-        { value: 85 }, { value: 87 }, { value: 88 }, 
-        { value: 86 }, { value: 89 }, { value: 90 }, 
-        { value: 92 }, { value: 94 }, { value: 98 }
-      ]
-    },
-    { 
-      id: 3, 
-      title: 'Error Rate', 
-      value: '1.8%', 
-      trend: 'down', 
-      percentage: '0.6', 
-      color: '#f72585',
-      data: [
-        { value: 5 }, { value: 4 }, { value: 4.5 }, 
-        { value: 4 }, { value: 3 }, { value: 2.5 }, 
-        { value: 2 }, { value: 1.8 }, { value: 1.8 }
-      ]
-    },
-    { 
       id: 4, 
       title: 'Avg. Processing Time', 
       value: '3.2s', 

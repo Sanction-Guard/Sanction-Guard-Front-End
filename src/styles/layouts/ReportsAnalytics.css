@@ -1,4 +1,4 @@
-/* ReportsAnalytics.css - Reports and analytics component styles */
+/* Reports and analytics component styles */
 
 /* Main container styling */
 .reports-container {
@@ -37,6 +37,37 @@
     z-index: 2;
 }
 
+/* Chart container styling */
+.chart-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border-top: 4px solid var(--secondary);
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Report list styling */
+.report-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+    transition: background-color var(--transition-fast);
+}
+
+.report-item:last-child {
+    border-bottom: none;
+}
+
+.report-item:hover {
+    background-color: var(--light);
+}
+
 /* Report generation options styling */
 .report-options-grid {
     display: grid;
@@ -61,71 +92,6 @@
     margin-top: auto;
 }
 
-/* Generated report item styling */
-.report-item {
-    padding: 1rem;
-    border-bottom: 1px solid var(--light-gray);
-    transition: background-color var(--transition-fast);
-}
-
-.report-item:last-child {
-    border-bottom: none;
-}
-
-.report-item:hover {
-    background-color: var(--light);
-}
-
-/* Stat value and label styling */
-.stat-value {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: var(--primary);
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    color: var(--dark-gray);
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-}
-
-/* Trend indicator styling */
-.trend-indicator {
-    font-size: 0.875rem;
-    margin-left: 0.5rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-}
-
-.trend-indicator::before {
-    content: '';
-    display: inline-block;
-    margin-right: 0.25rem;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-}
-
-.trend-up {
-    color: var(--success);
-}
-
-.trend-up::before {
-    border-bottom: 5px solid var(--success);
-}
-
-.trend-down {
-    color: var(--danger);
-}
-
-.trend-down::before {
-    border-top: 5px solid var(--danger);
-}
-
 /* Animations for staggered loading */
 .slide-up {
     animation: slideUp 0.5s ease-out forwards;
@@ -148,34 +114,17 @@
     animation-delay: 0.3s;
 }
 
-/* Icon container styling */
-.icon-container {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-}
-
-/* Button hover states */
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .report-options-grid {
         grid-template-columns: 1fr;
     }
     
-    .d-flex {
+    .report-item {
         flex-direction: column;
     }
     
-    .justify-content-between > div:last-child {
+    .report-item-actions {
         margin-top: 1rem;
         align-self: flex-start;
     }
