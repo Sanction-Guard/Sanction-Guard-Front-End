@@ -1,9 +1,83 @@
-/* DataImport.css - Data import layout and component styles */
+/* Data import layout and component styles */
 
 /* Main container */
 .data-import-container {
     width: 100%;
     margin: 0;
+}
+
+/* Tab navigation styles */
+.import-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 0.5rem;
+}
+
+.tab-button {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    color: var(--dark-gray);
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.tab-button:hover {
+    color: var(--primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.tab-button.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary);
+    border-radius: var(--radius-full);
+    animation: indicatorFadeIn 0.3s ease forwards;
+}
+
+@keyframes indicatorFadeIn {
+    from {
+        opacity: 0;
+        transform: scaleX(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+/* Data import progress update styles */
+/* Add this CSS to your CSS file */
+@keyframes statusUpdate {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.status-badge.status-updated {
+    animation: statusUpdate 0.5s ease;
 }
 
 /* Upload Card Styling */
@@ -30,6 +104,7 @@
 
 /* Dashboard card styles */
 .dashboard-card {
+    margin-bottom: 1.5rem;
     transition: all 0.3s ease;
     border-top: 4px solid var(--primary);
     box-shadow: var(--shadow-sm);
@@ -40,23 +115,83 @@
     box-shadow: var(--shadow-md);
 }
 
-/* Dashboard grid */
-.dashboard-grid {
+.dashboard-card .card-header {
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+}
+
+.dashboard-card .card-footer {
+    padding: 1rem 1.5rem;
+}
+
+/* Import history cards */
+.import-history-card {
+    transition: all var(--transition-normal);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.import-history-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Border left variations */
+.border-left-success {
+    border-left: 4px solid var(--success) !important;
+}
+
+.border-left-warning {
+    border-left: 4px solid var(--warning) !important;
+}
+
+.border-left-danger {
+    border-left: 4px solid var(--danger) !important;
+}
+
+.border-left-primary {
+    border-left: 4px solid var(--primary) !important;
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark-gray);
+}
+
+.form-control {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--medium-gray);
+    padding: 0.75rem 1rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    outline: none;
+}
+
+.form-check {
     display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
 }
 
-.dashboard-grid > * {
-    animation: fadeIn 0.5s ease forwards;
+.form-check-input {
+    margin-right: 0.5rem;
 }
 
-.dashboard-grid > *:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.dashboard-grid > *:nth-child(2) {
-    animation-delay: 0.2s;
+.form-check-label {
+    font-weight: 400;
+    color: var(--dark);
 }
 
 /* Icon container styles */
@@ -73,67 +208,6 @@
     margin-right: auto;
 }
 
-.flex {
-    display: flex;
-}
-
-.items-center {
-    align-items: center;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.rounded-full {
-    border-radius: 9999px;
-}
-
-/* Text styling */
-.text-2xl {
-    font-size: 1.5rem;
-}
-
-.text-xl {
-    font-size: 1.25rem;
-}
-
-.font-bold {
-    font-weight: 700;
-}
-
-.font-semibold {
-    font-weight: 600;
-}
-
-.font-medium {
-    font-weight: 500;
-}
-
-.text-gray-600 {
-    color: var(--dark-gray);
-}
-
-.text-gray-500 {
-    color: #6b7280;
-}
-
-/* Status badge styling */
-.status-badge {
-    padding: 0.35rem 0.75rem;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: inline-block;
-}
-
-.status-badge.info {
-    background-color: var(--info);
-    color: white;
-}
-
 /* Animation classes */
 .fade-in {
     animation: fadeIn 0.5s ease-in forwards;
@@ -143,44 +217,29 @@
     animation: slideUp 0.5s ease-out forwards;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+/* Loading spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Border utilities */
-.border-t {
-    border-top: 1px solid var(--light-gray);
-}
-
-.border-2 {
-    border-width: 2px;
-}
-
-.border-dashed {
-    border-style: dashed;
-}
-
-/* Responsive Styling */
+/* Responsive media queries */
 @media (max-width: 768px) {
-    .dashboard-grid {
+    .import-tabs {
         flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .tab-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .tab-button.active::after {
+        bottom: 0;
     }
 }
