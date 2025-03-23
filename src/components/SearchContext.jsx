@@ -34,6 +34,9 @@ export const SearchProvider = ({ children }) => {
   
   // Current search results
   const [searchResults, setSearchResults] = useState([]);
+
+  /* ************************MAY CAUSE AN ERROR WITH/WITHOUT, CHECK****************************** */
+  const [analyticsData, setAnalyticsData] = useState([]); // Store analytics data
   
   // Collection of analytics data for reporting
   const [analyticsData, setAnalyticsData] = useState([]);
