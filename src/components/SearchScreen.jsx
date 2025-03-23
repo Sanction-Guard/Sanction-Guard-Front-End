@@ -21,6 +21,9 @@ function SearchScreen() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
 
+  const [buttonClickTimes, setButtonClickTimes] = useState([]);
+  const [searchResultTimes, setSearchResultTimes] = useState([]);
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       setError('Please enter a search term');
@@ -28,6 +31,14 @@ function SearchScreen() {
     }
 
     try {
+
+      const clickTime = new Date();
+      setButtonClickTimes(prev => [...prev, {
+        action: 'Search Button Click',
+        timestamp: clickTime.toISOString(),
+        searchTerm
+      }]);
+
       setLoading(true);
       setError(null);
       setTotalSearches((prev) => prev + 1);
@@ -45,6 +56,7 @@ function SearchScreen() {
       }
 
       const results = await response.json();
+
       setSearchResults(results);
       setExpandedResults({});
       setTotalMatches((prev) => prev + results.length);
@@ -59,6 +71,21 @@ function SearchScreen() {
           timestamp: new Date().toLocaleString(),
         }
       ]);
+
+      const resultTime = new Date();
+      setSearchResultTimes(prev => [...prev, {
+        action: 'Search Results Displayed',
+        timestamp: resultTime.toISOString(),
+        searchTerm,
+        searchType, // Adding searchType for more complete data
+        resultCount: results.length,
+        matchDetails: results.length > 0 ? {
+          topMatchSimilarity: results[0].similarityPercentage || 0,
+          sourcesFound: [...new Set(results.map(r => r.source).filter(Boolean))]
+        } : null
+      }]);
+
+      
 
     } catch (err) {
       console.error('Search error:', err);
@@ -96,6 +123,65 @@ function SearchScreen() {
       ...prev,
       [index]: !prev[index],
     }));
+  };
+
+  // Function to export data as CSV
+  const exportData = () => {
+    // Create a more structured export with explicit search history
+    const searchHistory = searchResultTimes.map(result => ({
+      timestamp: result.timestamp,
+      searchTerm: result.searchTerm,
+      searchType: result.searchType || 'individual', // Default if not recorded
+      matchCount: result.resultCount,
+      matchDetails: result.matchDetails || null
+    }));
+  
+    // Create export data object
+    const exportData = {
+      summary: {
+        totalSearches,
+        totalMatches,
+        currentTime: new Date().toISOString()
+      },
+      searchHistory,
+      buttonClickEvents: buttonClickTimes,
+      analyticsData
+    };
+
+    // Convert to CSV or JSON
+    const dataStr = JSON.stringify(exportData, null, 2);
+    
+    // Create download link
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    // Create temporary link and trigger download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `search-activity-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  // Function to handle refresh button click
+  const handleRefreshClick = () => {
+    // Record button click time
+    const clickTime = new Date();
+    setButtonClickTimes(prev => [...prev, {
+      action: 'Refresh Button Click',
+      timestamp: clickTime.toISOString()
+    }]);
+    
+    fetchDatabaseStatus();
+    setTotalSearches(0);
+    setTotalMatches(0);
+    setSearchResults(null);
   };
 
   return (
@@ -351,14 +437,7 @@ function SearchScreen() {
                   </Button>
                   <Button 
                     className="btn btn-secondary btn-ripple w-100" 
-                    onClick={() => {
-                      if (searchResults && searchResults.length > 0) {
-                        // Call the export function
-                        alert('Export function will be called');
-                      } else {
-                        alert('No results to export');
-                      }
-                    }}
+                    onClick={exportData}
                   >
                     <i className="bi bi-download me-2"></i> Export Results
                   </Button>
