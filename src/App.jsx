@@ -9,6 +9,8 @@ import DataImport from './components/DataImport.jsx';
 import ReportsAnalytics from './components/ReportsAnalytics.jsx';
 import AuditLog from './components/AuditLog.jsx';
 import Alerts from './components/Alerts.jsx';
+import Settings from './components/Settings.jsx'; // Your Settings component
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/Base.css';
 import './styles/components/Card.css';
@@ -36,16 +38,16 @@ function App() {
           
           <main className="main-content">
             <Routes>
-              {/* Redirect empty path to dashboard */}
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/" element={<Dashboard />} /> {/* Redirect empty path to dashboard. So the dashboard is loaded as default */}
+              <Route path="/dashboard" element={<Dashboard />} /> {/* Updated with new dashboard */}
               <Route path="/search-screen" element={<SearchScreen />} />
               <Route path="/batch-processing" element={<BatchProcessing />} />
               <Route path="/data-import" element={<DataImport />} />
               <Route path="/reports-analytics" element={<ReportsAnalytics />} />
               <Route path="/audit-log" element={<AuditLog />} />
-              <Route path="/alerts" element={<Alerts />} />
-            </Routes>
+              <Route path="/audit-log" element={<AuditLog />} />
+              <Route path="/settings" element={<Settings />} /> {/* Added Settings route */}
+          </Routes>
           </main>
         </div>
       </Router>
