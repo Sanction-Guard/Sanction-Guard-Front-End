@@ -2,12 +2,6 @@ import React, { useState } from 'react';
 import { Container, Card, Button, Badge, Spinner, Alert, Accordion, Table } from 'react-bootstrap';
 import Papa from 'papaparse'; // Ensure this import works after installation
 import { processBatch } from './api'; // API utility for sending data to Elasticsearch
-import '../styles/Base.css';
-import '../styles/components/Card.css';
-import '../styles/components/Button.css';
-import '../styles/components/StatusBadge.css';
-import '../styles/components/Animation.css';
-import '../styles/layouts/BatchProcessing.css';
 
 function BatchProcessing() {
   const [file, setFile] = useState(null);
