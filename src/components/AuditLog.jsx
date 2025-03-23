@@ -1,5 +1,5 @@
-import React from 'react';
-import { Container, Card, Form, Button, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Card, Form, Button, Badge, Spinner } from 'react-bootstrap';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
 import '../styles/components/Form.css';
@@ -7,8 +7,58 @@ import '../styles/components/Button.css';
 import '../styles/components/StatusBadge.css';
 import '../styles/components/Animation.css';
 import '../styles/layouts/AuditLog.css';
+import axios from 'axios';
 
 function AuditLog() {
+  const [logs, setLogs] = useState([]); // State to store audit logs
+  const [loading, setLoading] = useState(true); // State to track loading status
+  const [error, setError] = useState(null); // State to track errors
+
+  // Fetch audit logs on component mount
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/audit-logs');
+        const sortedLogs = response.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort by timestamp (newest first)
+        setLogs(sortedLogs);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchLogs();
+  }, []);
+  
+
+  // Show loading spinner while fetching data
+  if (loading) {
+    return (
+      <Container className="audit-log-container fade-in">
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      </Container>
+    );
+  }
+
+  // Show error message if request fails
+  if (error) {
+    return (
+      <Container className="audit-log-container fade-in">
+        <Alert variant="danger" className="slide-up border-left-danger">
+          <div className="d-flex align-items-center">
+            <i className="bi bi-exclamation-circle text-danger me-2" style={{ fontSize: '1.25rem' }}></i>
+            <p className="mb-0">Error: {error}</p>
+          </div>
+        </Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container className="audit-log-container fade-in">
       {/* Header section */}
@@ -16,16 +66,17 @@ function AuditLog() {
         <h2 className="text-2xl font-bold mb-2">System Audit Log</h2>
         <p className="text-gray-600">Track all system activities and user actions.</p>
       </div>
-      
+
+      {/* Search and filter section */}
       <Card className="shadow-sm slide-up">
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-            <h4 className="mb-0 font-semibold">System Audit Log</h4>
-            <div className="d-flex flex-wrap mt-2 mt-md-0">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h4 className="mb-0">Search Logs</h4>
+            <div>
               <Form.Control
                 type="text"
-                placeholder="Search audit logs..."
-                className="search-bar me-2 mb-2 mb-md-0"
+                placeholder="Search logs..."
+                className="d-inline-block me-2"
                 style={{ width: '300px' }}
               />
               <Button variant="outline-secondary" className="btn-secondary me-2 mb-2 mb-md-0">
@@ -37,59 +88,26 @@ function AuditLog() {
             </div>
           </div>
 
-          <div className="mb-4 audit-logs-section">
-            {/* TODO: Implement dynamic audit log entries from backend */}
-            <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded audit-log-entry">
-              <div className="audit-log-icon d-none d-md-flex">
-                <div className="icon-circle database-update">
-                  <i className="bi bi-database-check"></i>
+          {/* Render audit log entries */}
+          <div className="mb-4">
+            {logs.map((log) => (
+              <div key={log._id} className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
+                <div>
+                  <h5 className="mb-1">{log.searchTerm}</h5>
+                  <p className="mb-1">Search Type: {log.searchType}</p>
+                  <small className="text-muted">User: {log.userId} | Timestamp: {new Date(log.timestamp).toLocaleString()}</small>
                 </div>
+                <Badge bg="dark">{log.action === "search?" ? "Serach" : log.action}</Badge>
               </div>
-              <div className="audit-log-content flex-grow-1 ms-md-3">
-                <h5 className="mb-1 font-semibold">Demo update</h5>
-                <p className="mb-1">Demo list updated with no new entries</p>
-                <div className="audit-log-meta">
-                  <span className="audit-meta-item">
-                    <i className="bi bi-person me-1"></i> demo
-                  </span>
-                  <span className="audit-meta-item">
-                    <i className="bi bi-globe me-1"></i> 127.0.0.1
-                  </span>
-                </div>
-              </div>
-              <Badge bg="info" className="status-badge info ms-2">N/A mins ago</Badge>
-            </div>
-
-            {/* Commented out entries - preserved original code */}
-            {/* <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
-              <div>
-                <h5 className="mb-1">N/A</h5>
-                <p className="mb-1">N/A</p>
-                <small className="text-muted">User: N/A | IP: N/A</small>
-              </div>
-              <Badge bg="dark">N/A</Badge>
-            </div>
-
-            <div className="d-flex justify-content-between align-items-start mb-3 p-3 bg-light rounded">
-              <div>
-                <h5 className="mb-1">N/A</h5>
-                <p className="mb-1">N/A</p>
-                <small className="text-muted">User: N/A | IP: N/A</small>
-              </div>
-              <Badge bg="dark">N/A</Badge>
-            </div> */}
+            ))}
           </div>
 
-          <div className="d-flex justify-content-between align-items-center flex-wrap">
-            {/* TODO: Implement dynamic pagination info from backend */}
-            <small className="text-muted text-sm text-gray-500">Showing 1 of 1 entries</small>
-            <div className="pagination-controls mt-2 mt-md-0">
-              <Button variant="outline-secondary" size="sm" className="btn-secondary btn-sm me-2">
-                <i className="bi bi-chevron-left me-1"></i> Previous
-              </Button>
-              <Button variant="outline-secondary" size="sm" className="btn-primary btn-sm">
-                Next <i className="bi bi-chevron-right ms-1"></i>
-              </Button>
+          {/* Pagination section */}
+          <div className="d-flex justify-content-between align-items-center">
+            <small className="text-muted">Showing {logs.length} of {logs.length} entries</small>
+            <div>
+              <Button variant="outline-secondary" size="sm" className="me-2">Previous</Button>
+              <Button variant="outline-secondary" size="sm">Next</Button>
             </div>
           </div>
         </Card.Body>

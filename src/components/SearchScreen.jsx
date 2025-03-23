@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
-import ReportsAnalytics from "./ReportsAnalytics";
+import { useNavigate } from 'react-router-dom';
 import '../styles/layouts/SearchScreen.css';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
@@ -11,7 +11,15 @@ import '../styles/components/StatusBadge.css';
 import '../styles/components/Animation.css';
 
 function SearchScreen() {
-  const { totalSearches, setTotalSearches, totalMatches, setTotalMatches, searchResults, setSearchResults } = useSearch();
+  const { 
+    totalSearches, 
+    setTotalSearches, 
+    totalMatches, 
+    setTotalMatches, 
+    searchResults, 
+    setSearchResults 
+  } = useSearch();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,73 +28,133 @@ function SearchScreen() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
+  const [flaggedResults, setFlaggedResults] = useState(() => {
+    const savedFlaggedResults = localStorage.getItem('flaggedResults');
+    return savedFlaggedResults ? JSON.parse(savedFlaggedResults) : [];
+  });
 
-  const [buttonClickTimes, setButtonClickTimes] = useState([]);
-  const [searchResultTimes, setSearchResultTimes] = useState([]);
+  const SIMILARITY_THRESHOLD = 70; // 70% threshold for display
+  const navigate = useNavigate(); // Hook for navigation
+
+  // Save flagged results to local storage whenever they change
+  useEffect(() => {
+    localStorage.setItem('flaggedResults', JSON.stringify(flaggedResults));
+  }, [flaggedResults]);
+
+  // Function to export results to text file
+  const exportResultsToTextFile = (results) => {
+    const text = results.map(result => {
+      return `Name: ${result.firstName} ${result.secondName} ${result.thirdName}
+Similarity: ${result.similarityPercentage}%
+Type: ${result.type || 'N/A'}
+Source: ${result.source || 'N/A'}
+Country: ${result.country || 'N/A'}
+--------------------------`;
+    }).join('\n');
+
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `search-results-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       setError('Please enter a search term');
       return;
     }
-
+  
     try {
-
-      const clickTime = new Date();
-      setButtonClickTimes(prev => [...prev, {
-        action: 'Search Button Click',
-        timestamp: clickTime.toISOString(),
-        searchTerm
-      }]);
-
       setLoading(true);
       setError(null);
       setTotalSearches((prev) => prev + 1);
-
+  
+      // Include userId in the request body
+      const userId = 'user123'; // Replace with actual user ID (e.g., from authentication context)
+  
+      // Send search data to the backend
       const response = await fetch('http://localhost:3001/api/search/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ searchTerm, searchType }),
+        body: JSON.stringify({
+          searchTerm,
+          searchType,
+          userId, // Include userId in the request body
+        }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`Search failed: ${response.statusText}`);
       }
-
+  
       const results = await response.json();
-
-      setSearchResults(results);
+  
+      // Filter the results by similarity threshold (as a backup in case server doesn't filter)
+      const filteredResults = results.filter(
+        (result) => parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
+      );
+  
+      // Store flagged results (matches above 90%)
+      const flagged = filteredResults.filter(
+        (result) => parseFloat(result.similarityPercentage) >= 90
+      );
+  
+      // Append new flagged results to existing flagged results
+      setFlaggedResults((prev) => {
+        const newFlaggedResults = [...prev, ...flagged];
+        // Remove duplicates based on a unique identifier (e.g., result.id or full name)
+        const uniqueFlaggedResults = Array.from(
+          new Set(newFlaggedResults.map((result) => result.id || result.fullName))
+        ).map((id) =>
+          newFlaggedResults.find((result) => result.id === id || result.fullName === id)
+        );
+        return uniqueFlaggedResults;
+      });
+  
+      setSearchResults(filteredResults);
       setExpandedResults({});
-      setTotalMatches((prev) => prev + results.length);
-
-      setAnalyticsData(prev => [
-        ...prev,
-        {
-          searchedName: searchTerm,
-          matchedName: results.length > 0 ? results[0].fullName : 'No Match',
-          dateOfBirth: results.length > 0 ? results[0].dateOfBirth : '-',
-          nicNumber: results.length > 0 ? results[0].nicNumber : '-',
-          timestamp: new Date().toLocaleString(),
-        }
-      ]);
-
-      const resultTime = new Date();
-      setSearchResultTimes(prev => [...prev, {
-        action: 'Search Results Displayed',
-        timestamp: resultTime.toISOString(),
-        searchTerm,
-        searchType, // Adding searchType for more complete data
-        resultCount: results.length,
-        matchDetails: results.length > 0 ? {
-          topMatchSimilarity: results[0].similarityPercentage || 0,
-          sourcesFound: [...new Set(results.map(r => r.source).filter(Boolean))]
-        } : null
-      }]);
-
-      
-
+      setTotalMatches((prev) => prev + filteredResults.length);
+  
+      // Log the search action to the database
+      const logResponse = await fetch('http://localhost:3001/api/search/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchTerm,
+          searchType,
+          userId,
+          action: 'Search',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+  
+      if (!logResponse.ok) {
+        throw new Error('Failed to log search data');
+      }
+  
+      // Only add analytics data if we have results above threshold
+      if (filteredResults.length > 0) {
+        setAnalyticsData((prev) => [
+          ...prev,
+          {
+            searchedName: searchTerm,
+            matchedName: filteredResults[0].fullName,
+            dateOfBirth: filteredResults[0].dateOfBirth || '-',
+            nicNumber: filteredResults[0].nicNumber || '-',
+            timestamp: new Date().toLocaleString(),
+          },
+        ])
+      }
     } catch (err) {
       console.error('Search error:', err);
       setError(`Error searching: ${err.message}`);
@@ -98,7 +166,7 @@ function SearchScreen() {
 
   const fetchDatabaseStatus = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/search/status');
+      const response = await fetch('http://localhost:3001/api/audit-logs');
       if (!response.ok) {
         throw new Error('Failed to fetch database status');
       }
@@ -125,63 +193,9 @@ function SearchScreen() {
     }));
   };
 
-  // Function to export data as CSV
-  const exportData = () => {
-    // Create a more structured export with explicit search history
-    const searchHistory = searchResultTimes.map(result => ({
-      timestamp: result.timestamp,
-      searchTerm: result.searchTerm,
-      searchType: result.searchType || 'individual', // Default if not recorded
-      matchCount: result.resultCount,
-      matchDetails: result.matchDetails || null
-    }));
-  
-    // Create export data object
-    const exportData = {
-      summary: {
-        totalSearches,
-        totalMatches,
-        currentTime: new Date().toISOString()
-      },
-      searchHistory,
-      buttonClickEvents: buttonClickTimes,
-      analyticsData
-    };
-
-    // Convert to CSV or JSON
-    const dataStr = JSON.stringify(exportData, null, 2);
-    
-    // Create download link
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    // Create temporary link and trigger download
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `search-activity-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
-    document.body.appendChild(a);
-    a.click();
-    
-    // Clean up
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  };
-
-  // Function to handle refresh button click
-  const handleRefreshClick = () => {
-    // Record button click time
-    const clickTime = new Date();
-    setButtonClickTimes(prev => [...prev, {
-      action: 'Refresh Button Click',
-      timestamp: clickTime.toISOString()
-    }]);
-    
-    fetchDatabaseStatus();
-    setTotalSearches(0);
-    setTotalMatches(0);
-    setSearchResults(null);
+  // Navigate to Alerts page with flagged results
+  const navigateToAlerts = () => {
+    navigate('/alerts', { state: { flaggedResults } });
   };
 
   return (
@@ -250,6 +264,11 @@ function SearchScreen() {
         </Alert>
       )}
 
+      {/* Button to navigate to Alerts page */}
+      <Button variant="warning" onClick={navigateToAlerts} className="mb-4">
+        View Flagged Results ({flaggedResults.length})
+      </Button>
+
       {/* Search results */}
       {searchResults && (
         <Card className="mb-4 dashboard-card slide-up">
@@ -304,66 +323,16 @@ function SearchScreen() {
                         <Card.Body className="p-3">
                           <table className="table table-bordered table-sm">
                             <tbody>
-                              {result.firstName && (
-                                <tr>
-                                  <th className="bg-light">First Name</th>
-                                  <td>{result.firstName}</td>
-                                </tr>
-                              )}
-                              {result.secondName && (
-                                <tr>
-                                  <th className="bg-light">Second Name</th>
-                                  <td>{result.secondName}</td>
-                                </tr>
-                              )}
-                              {result.thirdName && (
-                                <tr>
-                                  <th className="bg-light">Third Name</th>
-                                  <td>{result.thirdName}</td>
-                                </tr>
-                              )}
-                              {result.full_name && (
-                                <tr>
-                                  <th className="bg-light">Full Name</th>
-                                  <td>{result.full_name}</td>
-                                </tr>
-                              )}
-                              {result.aliasNames && result.aliasNames.length > 0 && (
-                                <tr>
-                                  <th className="bg-light">Alias Names</th>
-                                  <td>{result.aliasNames.join(', ')}</td>
-                                </tr>
-                              )}
-                              {result.source && (
-                                <tr>
-                                  <th className="bg-light">Source</th>
-                                  <td>{result.source}</td>
-                                </tr>
-                              )}
-                              {result.type && (
-                                <tr>
-                                  <th className="bg-light">Type</th>
-                                  <td>{result.type}</td>
-                                </tr>
-                              )}
-                              {result.country && (
-                                <tr>
-                                  <th className="bg-light">Country</th>
-                                  <td>{result.country}</td>
-                                </tr>
-                              )}
-                              {result.similarityPercentage && (
-                                <tr>
-                                  <th className="bg-light">Similarity %</th>
-                                  <td>{result.similarityPercentage}%</td>
-                                </tr>
-                              )}
-                              {result.score && (
-                                <tr>
-                                  <th className="bg-light">Score</th>
-                                  <td>{result.score}</td>
-                                </tr>
-                              )}
+                              {result.firstName && <tr><th className="bg-light">First Name</th><td>{result.firstName}</td></tr>}
+                              {result.secondName && <tr><th className="bg-light">Second Name</th><td>{result.secondName}</td></tr>}
+                              {result.thirdName && <tr><th className="bg-light">Third Name</th><td>{result.thirdName}</td></tr>}
+                              {result.full_name && <tr><th className="bg-light">Full Name</th><td>{result.full_name}</td></tr>}
+                              {result.aliasNames?.length > 0 && <tr><th className="bg-light">Alias Names</th><td>{result.aliasNames.join(', ')}</td></tr>}
+                              {result.source && <tr><th className="bg-light">Source</th><td>{result.source}</td></tr>}
+                              {result.type && <tr><th className="bg-light">Type</th><td>{result.type}</td></tr>}
+                              {result.country && <tr><th className="bg-light">Country</th><td>{result.country}</td></tr>}
+                              {result.similarityPercentage && <tr><th className="bg-light">Similarity %</th><td>{result.similarityPercentage}%</td></tr>}
+                              {result.score && <tr><th className="bg-light">Score</th><td>{result.score}</td></tr>}
                             </tbody>
                           </table>
                         </Card.Body>
@@ -430,14 +399,20 @@ function SearchScreen() {
                       fetchDatabaseStatus();
                       setTotalSearches(0);
                       setTotalMatches(0);
-                      setSearchResults(null);
+                      setSearchResults([]);
                     }}
                   >
                     <i className="bi bi-arrow-clockwise me-2"></i> Refresh Data
                   </Button>
                   <Button 
                     className="btn btn-secondary btn-ripple w-100" 
-                    onClick={exportData}
+                    onClick={() => {
+                      if (searchResults && searchResults.length > 0) {
+                        exportResultsToTextFile(searchResults);
+                      } else {
+                        alert('No results to export');
+                      }
+                    }}
                   >
                     <i className="bi bi-download me-2"></i> Export Results
                   </Button>
