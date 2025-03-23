@@ -85,6 +85,7 @@ function ReportsAnalytics() {
 
 
     //pdf blob
+
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     setLastReportUrl(pdfUrl);
@@ -259,6 +260,8 @@ function ReportsAnalytics() {
       </div>
 
       {/* Generated Reports Section */}
+
+      {/* Generated Reports Section */}
       <Card className="report-card slide-up" style={{ animationDelay: '0.3s' }}>
         <Card.Header className="p-4 border-b">
           <h4 className="font-semibold">Generated Reports</h4>
@@ -266,21 +269,23 @@ function ReportsAnalytics() {
         <Card.Body className="p-4">
           <div className="flex justify-between items-center">
             <div>
-              <h4 className="font-medium mb-1">Latest Screening Report</h4>
+              <h4 className="font-medium mb-1">Latest Report</h4>
               <h5 className="text-gray-600 mb-1">{lastReportName || 'No Report Available'}</h5>
-              <small className="text-gray-500">{new Date().toLocaleDateString()}</small>
             </div>
-            <div>
-              <Button className="btn btn-secondary btn-sm mr-2" onClick={handlePreview} disabled={!lastReportUrl}>
-                Preview
-              </Button>
-              <Button className="btn btn-primary btn-sm" onClick={handleDownload} disabled={!lastReportUrl}>
-                Download
-              </Button>
-            </div>
+            {lastReportUrl && (
+              <div className="flex gap-2">
+                <Button className="btn btn-outline-primary" onClick={handlePreview}>
+                  Preview
+                </Button>
+                <Button className="btn btn-success" onClick={handleDownload}>
+                  Download
+                </Button>
+              </div>
+            )}
           </div>
         </Card.Body>
       </Card>
+
 
       {/* Analytics Dashboard */}
       <div className="mt-6 slide-up" style={{ animationDelay: '0.4s' }}>

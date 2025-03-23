@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown, Badge } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import ReportsAnalytics from "./ReportsAnalytics";
 import '../styles/layouts/SearchScreen.css';
 import '../styles/Base.css';
@@ -43,12 +44,56 @@ function SearchScreen() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
   
+  // State for flagged results
+  const [flaggedResults, setFlaggedResults] = useState(() => {
+    // Load flagged results from local storage on initial render
+    const savedFlaggedResults = localStorage.getItem('flaggedResults');
+    return savedFlaggedResults ? JSON.parse(savedFlaggedResults) : [];
+  });
+  
   // NEW: State for showing import information
   const [showImportInfo, setShowImportInfo] = useState(false);
   const [importStats, setImportStats] = useState({ 
     totalImported: 0, 
     recentImports: [] 
   });
+  
+  // Constants
+  const SIMILARITY_THRESHOLD = 70; // 70% threshold for display
+  const navigate = useNavigate(); // Hook for navigation
+
+  // Save flagged results to local storage whenever they change
+  useEffect(() => {
+    localStorage.setItem('flaggedResults', JSON.stringify(flaggedResults));
+  }, [flaggedResults]);
+
+  /**
+   * Function to export results to text file
+   * 
+   * @param {Array} results - Results to export
+   * @returns {void}
+   */
+  const exportResultsToTextFile = (results) => {
+    const text = results.map(result => {
+      return `Name: ${result.firstName} ${result.secondName} ${result.thirdName}
+Similarity: ${result.similarityPercentage}%
+Type: ${result.type || 'N/A'}
+Source: ${result.source || 'N/A'}
+Country: ${result.country || 'N/A'}
+--------------------------`;
+    }).join('\n');
+
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `search-results-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   /**
    * Handle search form submission
@@ -89,24 +134,64 @@ function SearchScreen() {
       // Parse response JSON
       const results = await response.json();
       
+      // Filter the results by similarity threshold (as a backup in case server doesn't filter)
+      const filteredResults = results.filter(result => 
+        parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
+      );
+
+      // Store flagged results (matches above 90%)
+      const flagged = filteredResults.filter(result => 
+        parseFloat(result.similarityPercentage) >= 90
+      );
+
+      // Append new flagged results to existing flagged results
+      setFlaggedResults((prev) => {
+        const newFlaggedResults = [...prev, ...flagged];
+        // Remove duplicates based on a unique identifier (e.g., result.id or full name)
+        const uniqueFlaggedResults = Array.from(new Set(newFlaggedResults.map(result => result.id || result.fullName)))
+          .map(id => newFlaggedResults.find(result => result.id === id || result.fullName === id));
+        return uniqueFlaggedResults;
+      });
+
       // Update search results and reset expanded states
-      setSearchResults(results);
+      setSearchResults(filteredResults);
       setExpandedResults({});
       
       // Update total matches counter
-      setTotalMatches((prev) => prev + results.length);
+      setTotalMatches((prev) => prev + filteredResults.length);
 
-      // Add this search to analytics data
-      setAnalyticsData(prev => [
-        ...prev,
-        {
-          searchedName: searchTerm,
-          matchedName: results.length > 0 ? results[0].fullName : 'No Match',
-          dateOfBirth: results.length > 0 ? results[0].dateOfBirth : '-',
-          nicNumber: results.length > 0 ? results[0].nicNumber : '-',
-          timestamp: new Date().toLocaleString(),
-        }
-      ]);
+      // Log search data
+      const logResponse = await fetch('http://localhost:3001/api/search/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchTerm,
+          searchType,
+          userId: 'user123',  
+          action: 'Search',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+  
+      if (!logResponse.ok) {
+        throw new Error('Failed to log search data');
+      }
+  
+      // Only add analytics data if we have results above threshold
+      if (filteredResults.length > 0) {
+        setAnalyticsData(prev => [
+          ...prev,
+          {
+            searchedName: searchTerm,
+            matchedName: filteredResults[0].fullName,
+            dateOfBirth: filteredResults[0].dateOfBirth || '-',
+            nicNumber: filteredResults[0].nicNumber || '-',
+            timestamp: new Date().toLocaleString(),
+          }
+        ]);
+      }
 
     } catch (err) {
       // Log and display error
@@ -127,8 +212,14 @@ function SearchScreen() {
    */
   const fetchDatabaseStatus = async () => {
     try {
-      // Make API request to status endpoint
-      const response = await fetch('http://localhost:3001/api/search/status');
+      // Make API request to status endpoint - try both endpoints
+      let response;
+      try {
+        response = await fetch('http://localhost:3001/api/search/status');
+      } catch (error) {
+        response = await fetch('http://localhost:3001/api/audit-logs');
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to fetch database status');
       }
@@ -138,7 +229,7 @@ function SearchScreen() {
       setTotalRecords(status.totalRecords);
       setLastUpdated(status.lastUpdated);
 
-      // NEW: Fetch import statistics
+      // Fetch import statistics
       fetchImportStats();
     } catch (err) {
       console.error('Error fetching database status:', err);
@@ -148,7 +239,7 @@ function SearchScreen() {
   };
 
   /**
-   * NEW: Fetch import statistics from the API
+   * Fetch import statistics from the API
    * 
    * @async
    * @returns {void}
@@ -232,7 +323,7 @@ function SearchScreen() {
   };
 
   /**
-   * NEW: Format import source to be more user-friendly
+   * Format import source to be more user-friendly
    * 
    * @param {string} source - Source string from API
    * @returns {string} Formatted source text
@@ -248,7 +339,7 @@ function SearchScreen() {
   };
 
   /**
-   * NEW: Render a source badge with appropriate color
+   * Render a source badge with appropriate color
    * 
    * @param {string} source - Source string from API
    * @returns {JSX.Element} Badge component
@@ -271,6 +362,15 @@ function SearchScreen() {
     );
   };
 
+  /**
+   * Navigate to Alerts page with flagged results
+   * 
+   * @returns {void}
+   */
+  const navigateToAlerts = () => {
+    navigate('/alerts', { state: { flaggedResults } });
+  };
+
   return (
     <Container className="search-container fade-in" style={{ marginTop: '0' }}>
       {/* Page header */}
@@ -286,21 +386,17 @@ function SearchScreen() {
             e.preventDefault();
             handleSearch();
           }}>
-            <div className="d-flex gap-2 search-form-wrapper">
-              <div className="position-relative flex-grow-1">
-                <i className="bi bi-search position-absolute" style={{ left: '15px', top: '12px', color: '#6c757d' }}></i>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter name, entity, or identifier..."
-                  className="search-bar pl-4"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ paddingLeft: '40px' }}
-                />
-              </div>
+            <div className="d-flex gap-2">
+              <Form.Control
+                type="text"
+                placeholder="Enter name, entity, or identifier..."
+                className="flex-grow-1"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
               <Dropdown>
-                <Dropdown.Toggle className="btn btn-secondary" id="dropdown-filter">
-                  <i className="bi bi-funnel me-1"></i> {searchType === 'individual' ? 'Individual' : 'Entity'}
+                <Dropdown.Toggle variant="outline-secondary" id="dropdown-filter">
+                  Filter by {searchType === 'individual' ? 'Individual' : 'Entity'}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => setSearchType('individual')}>Individual</Dropdown.Item>
@@ -308,51 +404,30 @@ function SearchScreen() {
                 </Dropdown.Menu>
               </Dropdown>
               <Button
-                variant="primary"
+                variant="dark"
                 type="submit"
-                className="btn btn-primary btn-ripple"
                 disabled={loading}
               >
-                {loading ? (
-                  <div className="d-flex align-items-center">
-                    <span className="loading-spinner me-2"></span>
-                    <span>Searching...</span>
-                  </div>
-                ) : (
-                  <><i className="bi bi-search me-1"></i> Screen</>
-                )}
+                {loading ? <Spinner animation="border" size="sm" /> : 'Screen'}
               </Button>
             </div>
           </Form>
         </Card.Body>
       </Card>
 
-      {/* Error message */}
-      {error && (
-        <Alert variant="danger" className="slide-up border-left-danger">
-          <div className="d-flex align-items-center">
-            <i className="bi bi-exclamation-circle text-danger me-2" style={{ fontSize: '1.25rem' }}></i>
-            <p className="mb-0">{error}</p>
-          </div>
-        </Alert>
-      )}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-      {/* Search results */}
+      {/* Add a button to navigate to Alerts page */}
+      <Button variant="warning" onClick={navigateToAlerts} className="mb-4">
+        View Flagged Results ({flaggedResults.length})
+      </Button>
+
       {searchResults && (
-        <Card className="mb-4 dashboard-card slide-up">
-          <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
-            <h5 className="mb-0 font-semibold">Search Results</h5>
-            <span className="status-badge info">
-              {searchResults.length} {searchResults.length === 1 ? 'match' : 'matches'}
-            </span>
-          </Card.Header>
-          <Card.Body className="p-3">
+        <Card className="mb-4">
+          <Card.Body>
+            <h5>Search Results (Minimum {SIMILARITY_THRESHOLD}% Similarity)</h5>
             {searchResults.length === 0 ? (
-              <div className="p-5 text-center">
-                <i className="bi bi-search" style={{ fontSize: '3rem', color: '#6c757d', opacity: '0.5' }}></i>
-                <h3 className="mt-3 mb-1 font-semibold">No matches found</h3>
-                <p className="text-gray-600 mb-0">Try adjusting your search term or filters.</p>
-              </div>
+              <Alert variant="info">No matches found with at least {SIMILARITY_THRESHOLD}% similarity</Alert>
             ) : (
               <div>
                 <p className="mb-3">Found <span className="text-primary font-semibold">{searchResults.length}</span> potential matches</p>
@@ -367,7 +442,7 @@ function SearchScreen() {
                           <h6 className="mb-0 font-semibold">
                             {result.firstName} {result.secondName} {result.thirdName || result.name}
                           </h6>
-                          {/* NEW: Show source badge */}
+                          {/* Show source badge */}
                           <div className="mt-1">
                             {renderSourceBadge(result.source)}
                             {result.listType && (
@@ -426,7 +501,7 @@ function SearchScreen() {
                                   <td>{result.full_name}</td>
                                 </tr>
                               )}
-                              {/* NEW: Show reference number */}
+                              {/* Show reference number */}
                               {result.referenceNumber && (
                                 <tr>
                                   <th className="bg-light">Reference Number</th>
@@ -451,7 +526,7 @@ function SearchScreen() {
                                   <td>{result.aliasNames.join(', ')}</td>
                                 </tr>
                               )}
-                              {/* NEW: Show addresses for entities */}
+                              {/* Show addresses for entities */}
                               {result.addresses && result.addresses.length > 0 && (
                                 <tr>
                                   <th className="bg-light">Addresses</th>
@@ -470,7 +545,7 @@ function SearchScreen() {
                                   <td>{result.source}</td>
                                 </tr>
                               )}
-                              {/* NEW: Show source file for imports */}
+                              {/* Show source file for imports */}
                               {result.sourceFile && (
                                 <tr>
                                   <th className="bg-light">Source File</th>
@@ -563,7 +638,7 @@ function SearchScreen() {
                   <span className="font-medium">Last Updated</span>
                   <span className="stat-value" style={{ fontSize: '1.25rem' }}>{lastUpdated || 'N/A'}</span>
                 </div>
-                {/* NEW: Show imported records count */}
+                {/* Show imported records count */}
                 {importStats.totalImported > 0 && (
                   <div className="d-flex justify-content-between align-items-center mt-3 p-2 bg-light rounded">
                     <span className="font-medium">Imported Records</span>
@@ -592,7 +667,7 @@ function SearchScreen() {
                   >
                     <i className="bi bi-arrow-clockwise me-2"></i> Refresh Data
                   </Button>
-                  {/* NEW: Show import information button */}
+                  {/* Show import information button */}
                   <Button 
                     className="btn btn-secondary btn-ripple w-100"
                     onClick={() => setShowImportInfo(!showImportInfo)}
@@ -603,8 +678,7 @@ function SearchScreen() {
                     className="btn btn-secondary btn-ripple w-100" 
                     onClick={() => {
                       if (searchResults && searchResults.length > 0) {
-                        // Call the export function
-                        alert('Export function will be called');
+                        exportResultsToTextFile(searchResults);
                       } else {
                         alert('No results to export');
                       }
@@ -619,7 +693,7 @@ function SearchScreen() {
         </Row>
       </div>
       
-      {/* NEW: Import information section */}
+      {/* Import information section */}
       {showImportInfo && (
         <div className="mt-4 mb-4 slide-up">
           <Card className="dashboard-card">
