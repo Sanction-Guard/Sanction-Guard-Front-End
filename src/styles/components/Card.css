@@ -1,0 +1,98 @@
+/* Card component */
+.card {
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--light-gray);
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    border-top: 1px solid var(--light-gray);
+    padding: 1rem 1.5rem;
+    background-color: var(--light);
+}
+
+/* Analytics card styles */
+.analytics-card {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: transform var(--transition-normal);
+    position: relative;
+    z-index: 1;
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    z-index: 2;
+}
+
+.stat-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: var(--dark-gray);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.trend-indicator {
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+
+.trend-indicator::before {
+    content: '';
+    display: inline-block;
+    margin-right: 0.25rem;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+}
+
+.trend-up {
+    color: var(--success);
+}
+
+.trend-up::before {
+    border-bottom: 5px solid var(--success);
+}
+
+.trend-down {
+    color: var(--danger);
+}
+
+.trend-down::before {
+    border-top: 5px solid var(--danger);
+}
+
+/* Dashboard grid layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}

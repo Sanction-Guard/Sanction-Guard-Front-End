@@ -1,0 +1,245 @@
+/* Data import layout and component styles */
+
+/* Main container */
+.data-import-container {
+    width: 100%;
+    margin: 0;
+}
+
+/* Tab navigation styles */
+.import-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 0.5rem;
+}
+
+.tab-button {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    color: var(--dark-gray);
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.tab-button:hover {
+    color: var(--primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.tab-button.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary);
+    border-radius: var(--radius-full);
+    animation: indicatorFadeIn 0.3s ease forwards;
+}
+
+@keyframes indicatorFadeIn {
+    from {
+        opacity: 0;
+        transform: scaleX(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+/* Data import progress update styles */
+/* Add this CSS to your CSS file */
+@keyframes statusUpdate {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.status-badge.status-updated {
+    animation: statusUpdate 0.5s ease;
+}
+
+/* Upload Card Styling */
+.upload-card {
+    border-top: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.upload-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.upload-area {
+    transition: all 0.3s ease;
+    background-color: var(--light);
+    border: 2px dashed var(--medium-gray);
+}
+
+.upload-area:hover {
+    border-color: var(--primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+/* Dashboard card styles */
+.dashboard-card {
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    border-top: 4px solid var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.dashboard-card .card-header {
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+}
+
+.dashboard-card .card-footer {
+    padding: 1rem 1.5rem;
+}
+
+/* Import history cards */
+.import-history-card {
+    transition: all var(--transition-normal);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.import-history-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Border left variations */
+.border-left-success {
+    border-left: 4px solid var(--success) !important;
+}
+
+.border-left-warning {
+    border-left: 4px solid var(--warning) !important;
+}
+
+.border-left-danger {
+    border-left: 4px solid var(--danger) !important;
+}
+
+.border-left-primary {
+    border-left: 4px solid var(--primary) !important;
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark-gray);
+}
+
+.form-control {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--medium-gray);
+    padding: 0.75rem 1rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    outline: none;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+    margin-right: 0.5rem;
+}
+
+.form-check-label {
+    font-weight: 400;
+    color: var(--dark);
+}
+
+/* Icon container styles */
+.w-16 {
+    width: 4rem;
+}
+
+.h-16 {
+    height: 4rem;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in forwards;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive media queries */
+@media (max-width: 768px) {
+    .import-tabs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .tab-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .tab-button.active::after {
+        bottom: 0;
+    }
+}
