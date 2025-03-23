@@ -104,6 +104,45 @@
     display: flex;
 }
 
+/* Bootstrap overrides to match new design */
+.card {
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Search bar adjustments */
+.search-bar {
+    border-radius: var(--radius-full);
+    border: 1px solid var(--medium-gray);
+    padding: 0.75rem 1.25rem;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+.search-bar:focus {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+    outline: none;
+}
+
+/* Status badge styling */
+.status-badge.info {
+    background-color: var(--info);
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .audit-log-entry .flex {
