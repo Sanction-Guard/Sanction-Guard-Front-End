@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { Line } from 'recharts';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
 import '../styles/components/Animation.css';
 
 const DashboardCard = ({ title, value, trend, percentage, color, data }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  
   
   // Define gradient colors based on the card's primary color
   const gradientStart = color || '#4361ee';

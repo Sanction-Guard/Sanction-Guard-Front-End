@@ -1,4 +1,4 @@
-/* ReportsAnalytics.css - Reports and analytics component styles */
+/* Reports and analytics component styles */
 
 /* Main container styling */
 .reports-container {
@@ -16,25 +16,6 @@
 .report-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-md);
-}
-
-/* Analytics card styling - consistent with Dashboard cards */
-.analytics-card {
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    transition: transform var(--transition-normal);
-    position: relative;
-    z-index: 1;
-    border-top: 4px solid var(--primary);
-    background-color: white;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-}
-
-.analytics-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
-    z-index: 2;
 }
 
 /* Report generation options styling */
@@ -61,7 +42,42 @@
     margin-top: auto;
 }
 
-/* Generated report item styling */
+/* Analytics card styling - consistent with Dashboard cards */
+.analytics-card {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: transform var(--transition-normal);
+    position: relative;
+    z-index: 1;
+    border-top: 4px solid var(--primary);
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    z-index: 2;
+}
+
+/* Chart container styling */
+.chart-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border-top: 4px solid var(--secondary);
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Report list styling */
 .report-item {
     padding: 1rem;
     border-bottom: 1px solid var(--light-gray);
@@ -76,54 +92,28 @@
     background-color: var(--light);
 }
 
-/* Stat value and label styling */
-.stat-value {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: var(--primary);
-    line-height: 1;
-    margin-bottom: 0.25rem;
+/* Report generation options styling */
+.report-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-.stat-label {
-    color: var(--dark-gray);
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
+.report-option-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Trend indicator styling */
-.trend-indicator {
-    font-size: 0.875rem;
-    margin-left: 0.5rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
+.report-option-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.trend-indicator::before {
-    content: '';
-    display: inline-block;
-    margin-right: 0.25rem;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-}
-
-.trend-up {
-    color: var(--success);
-}
-
-.trend-up::before {
-    border-bottom: 5px solid var(--success);
-}
-
-.trend-down {
-    color: var(--danger);
-}
-
-.trend-down::before {
-    border-top: 5px solid var(--danger);
+.report-option-card .btn {
+    margin-top: auto;
 }
 
 /* Animations for staggered loading */
@@ -148,34 +138,17 @@
     animation-delay: 0.3s;
 }
 
-/* Icon container styling */
-.icon-container {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-}
-
-/* Button hover states */
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .report-options-grid {
         grid-template-columns: 1fr;
     }
     
-    .d-flex {
+    .report-item {
         flex-direction: column;
     }
     
-    .justify-content-between > div:last-child {
+    .report-item-actions {
         margin-top: 1rem;
         align-self: flex-start;
     }

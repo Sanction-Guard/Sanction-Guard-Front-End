@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown, Badge } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-import ReportsAnalytics from "./ReportsAnalytics";
 import '../styles/layouts/SearchScreen.css';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
@@ -51,7 +50,7 @@ function SearchScreen() {
     return savedFlaggedResults ? JSON.parse(savedFlaggedResults) : [];
   });
   
-  // NEW: State for showing import information
+  // State for showing import information
   const [showImportInfo, setShowImportInfo] = useState(false);
   const [importStats, setImportStats] = useState({ 
     totalImported: 0, 
@@ -118,13 +117,26 @@ Country: ${result.country || 'N/A'}
       setTotalSearches((prev) => prev + 1);
 
       // Make API request to search endpoint
-      const response = await fetch('http://localhost:3001/api/search/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ searchTerm, searchType }),
-      });
+      // Try both endpoint patterns to ensure compatibility
+      let response;
+      try {
+        response = await fetch('http://localhost:3001/api/search/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ searchTerm, searchType }),
+        });
+      } catch (err) {
+        // Fall back to alternative endpoint pattern
+        response = await fetch('http://localhost:3001/api/search/search?', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ searchTerm, searchType }),
+        });
+      }
 
       // Handle HTTP errors
       if (!response.ok) {
@@ -160,23 +172,50 @@ Country: ${result.country || 'N/A'}
       // Update total matches counter
       setTotalMatches((prev) => prev + filteredResults.length);
 
-      // Log search data
-      const logResponse = await fetch('http://localhost:3001/api/search/log', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          searchTerm,
-          searchType,
-          userId: 'user123',  
-          action: 'Search',
-          timestamp: new Date().toISOString(),
-        }),
-      });
-  
-      if (!logResponse.ok) {
-        throw new Error('Failed to log search data');
+      // Try to log search data - try both endpoint patterns
+      try {
+        // Log search data
+        const logResponse = await fetch('http://localhost:3001/api/search/log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            searchTerm,
+            searchType,
+            userId: 'user123',  
+            action: 'Search',
+            timestamp: new Date().toISOString(),
+          }),
+        });
+        
+        if (!logResponse.ok) {
+          throw new Error('Failed to log search data');
+        }
+      } catch (logErr) {
+        // Attempt alternative endpoint
+        try {
+          const logResponse = await fetch('http://localhost:3001/api/search/search?', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              searchTerm,
+              searchType,
+              userId: 'user123',  
+              action: 'Search',
+              timestamp: new Date().toISOString(),
+            }),
+          });
+          
+          if (!logResponse.ok) {
+            throw new Error('Failed to log search data');
+          }
+        } catch (e) {
+          console.warn('Could not log search data', e);
+          // Continue with search results display even if logging fails
+        }
       }
   
       // Only add analytics data if we have results above threshold
@@ -750,7 +789,7 @@ Country: ${result.country || 'N/A'}
                 <Button
                   variant="outline-primary"
                   size="sm"
-                  onClick={() => window.location.href = '/import'}
+                  onClick={() => window.location.href = '/data-import'}
                 >
                   <i className="bi bi-arrow-right me-1"></i> Go to Import Section
                 </Button>

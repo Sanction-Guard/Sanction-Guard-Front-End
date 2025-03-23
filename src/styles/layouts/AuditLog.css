@@ -18,6 +18,11 @@
     box-shadow: var(--shadow-md);
 }
 
+/* Audit log entry layout */
+.audit-log-content {
+    padding: 0 1rem;
+}
+
 /* Audit log metadata styling */
 .audit-log-meta {
     display: flex;
@@ -73,6 +78,32 @@
     color: #9966FF;
 }
 
+/* Filter options section */
+.filter-options {
+    display: none;  /* Hidden by default, can be toggled with JavaScript */
+    transition: all 0.3s ease;
+}
+
+.filter-options.visible {
+    display: block;
+}
+
+/* Search form styling */
+.search-form-wrapper {
+    flex: 1;
+}
+
+/* Adjust search bar for audit log */
+.audit-log-container .search-bar {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Pagination controls */
+.pagination-controls {
+    display: flex;
+}
+
 /* Bootstrap overrides to match new design */
 .card {
     background: white;
@@ -102,11 +133,6 @@
     outline: none;
 }
 
-/* Pagination controls */
-.pagination-controls {
-    display: flex;
-}
-
 /* Status badge styling */
 .status-badge.info {
     background-color: var(--info);
@@ -119,7 +145,7 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .audit-log-entry {
+    .audit-log-entry .flex {
         flex-direction: column;
     }
     
@@ -127,17 +153,30 @@
         margin-bottom: 1rem;
     }
     
-    .audit-log-meta {
-        flex-direction: column;
+    .audit-log-time {
+        margin-top: 1rem;
+        align-self: flex-start;
     }
     
-    .audit-meta-item {
-        margin-bottom: 0.5rem;
+    .audit-log-content {
+        padding: 0;
+    }
+    
+    .pagination-controls {
+        margin-top: 1rem;
+    }
+    
+    .filter-options .grid {
+        grid-template-columns: 1fr !important;
     }
 }
 
-/* Animation styles */
-.audit-logs-section > * {
-    animation: fadeIn 0.5s ease forwards;
-    animation-delay: 0.1s;
+/* Animation for card entries */
+.audit-logs-section .card {
+    animation-delay: calc(0.1s * var(--i, 0));
+}
+
+/* Status badge in time section */
+.audit-log-time .status-badge {
+    white-space: nowrap;
 }
