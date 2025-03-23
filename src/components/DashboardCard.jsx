@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Line } from 'recharts';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
 import '../styles/components/Animation.css';

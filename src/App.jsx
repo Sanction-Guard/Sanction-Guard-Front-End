@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import 'recharts';
-import './styles/RechartsOverride.css';
+
 import ModernNavigation from './components/ModernNavigation.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import SearchScreen from './components/SearchScreen.jsx';
