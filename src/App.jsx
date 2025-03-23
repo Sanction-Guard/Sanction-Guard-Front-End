@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import 'recharts'; // Import recharts
-import './styles/RechartsOverride.css'; // Import overrides immediately after
+// import 'recharts'; // Import recharts
+// import './styles/RechartsOverride.css'; // Import overrides immediately after
 import ModernNavigation from './components/ModernNavigation.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import SearchScreen from './components/SearchScreen.jsx';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown } from 'react-bootstrap';
+import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown, Badge } from 'react-bootstrap';
 import { useSearch } from './SearchContext';
 import ReportsAnalytics from "./ReportsAnalytics";
 import '../styles/layouts/SearchScreen.css';
@@ -10,8 +10,30 @@ import '../styles/components/Form.css';
 import '../styles/components/StatusBadge.css';
 import '../styles/components/Animation.css';
 
+/**
+ * SearchScreen Component
+ * 
+ * This component provides the main search interface for SanctionGuard.
+ * It handles searching for individuals and entities in the sanctions database
+ * and displays the results with similarity scores.
+ * 
+ * The component has been modified to better display imported data from CSV files
+ * by adding source information and improved result display.
+ * 
+ * @returns {JSX.Element} The search screen UI
+ */
 function SearchScreen() {
-  const { totalSearches, setTotalSearches, totalMatches, setTotalMatches, searchResults, setSearchResults } = useSearch();
+  // Get search context values and functions
+  const { 
+    totalSearches, 
+    setTotalSearches, 
+    totalMatches, 
+    setTotalMatches, 
+    searchResults, 
+    setSearchResults 
+  } = useSearch();
+  
+  // Local state for search form and results
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,18 +42,37 @@ function SearchScreen() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
+  
+  // NEW: State for showing import information
+  const [showImportInfo, setShowImportInfo] = useState(false);
+  const [importStats, setImportStats] = useState({ 
+    totalImported: 0, 
+    recentImports: [] 
+  });
 
+  /**
+   * Handle search form submission
+   * Sends search request to API and processes results
+   * 
+   * @async
+   * @returns {void}
+   */
   const handleSearch = async () => {
+    // Validate search term
     if (!searchTerm.trim()) {
       setError('Please enter a search term');
       return;
     }
 
     try {
+      // Set loading state and clear any previous errors
       setLoading(true);
       setError(null);
+      
+      // Increment total searches counter
       setTotalSearches((prev) => prev + 1);
 
+      // Make API request to search endpoint
       const response = await fetch('http://localhost:3001/api/search/search', {
         method: 'POST',
         headers: {
@@ -40,15 +81,22 @@ function SearchScreen() {
         body: JSON.stringify({ searchTerm, searchType }),
       });
 
+      // Handle HTTP errors
       if (!response.ok) {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
+      // Parse response JSON
       const results = await response.json();
+      
+      // Update search results and reset expanded states
       setSearchResults(results);
       setExpandedResults({});
+      
+      // Update total matches counter
       setTotalMatches((prev) => prev + results.length);
 
+      // Add this search to analytics data
       setAnalyticsData(prev => [
         ...prev,
         {
@@ -61,25 +109,37 @@ function SearchScreen() {
       ]);
 
     } catch (err) {
+      // Log and display error
       console.error('Search error:', err);
       setError(`Error searching: ${err.message}`);
       setSearchResults([]);
     } finally {
+      // Reset loading state
       setLoading(false);
     }
   };
 
+  /**
+   * Fetch database status to display record counts and last update
+   * 
+   * @async
+   * @returns {void}
+   */
   const fetchDatabaseStatus = async () => {
     try {
+      // Make API request to status endpoint
       const response = await fetch('http://localhost:3001/api/search/status');
       if (!response.ok) {
         throw new Error('Failed to fetch database status');
       }
 
+      // Parse response and update state
       const status = await response.json();
       setTotalRecords(status.totalRecords);
       setLastUpdated(status.lastUpdated);
 
+      // NEW: Fetch import statistics
+      fetchImportStats();
     } catch (err) {
       console.error('Error fetching database status:', err);
       setTotalRecords(0);
@@ -87,15 +147,128 @@ function SearchScreen() {
     }
   };
 
+  /**
+   * NEW: Fetch import statistics from the API
+   * 
+   * @async
+   * @returns {void}
+   */
+  const fetchImportStats = async () => {
+    try {
+      // Make API request to imports endpoint
+      const response = await fetch('http://localhost:3001/api/imports/recent');
+      if (!response.ok) {
+        throw new Error('Failed to fetch import statistics');
+      }
+
+      // Parse response and update import stats
+      const recentImports = await response.json();
+      
+      // Calculate total imported records
+      const totalImported = recentImports.reduce((total, imp) => {
+        return total + (imp.entriesUpdated || 0);
+      }, 0);
+      
+      // Update import stats state
+      setImportStats({ 
+        totalImported, 
+        recentImports 
+      });
+    } catch (err) {
+      console.error('Error fetching import stats:', err);
+    }
+  };
+
+  // Fetch database status when component mounts
   useEffect(() => {
     fetchDatabaseStatus();
   }, []);
 
+  /**
+   * Toggle expanding/collapsing result details
+   * 
+   * @param {number} index - Index of the result to toggle
+   * @returns {void}
+   */
   const toggleExpand = (index) => {
     setExpandedResults((prev) => ({
       ...prev,
       [index]: !prev[index],
     }));
+  };
+
+  /**
+   * Format a date string for better display
+   * 
+   * @param {string} dateStr - Date string to format
+   * @returns {string} Formatted date
+   */
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  /**
+   * Get bootstrap color class based on similarity percentage
+   * 
+   * @param {number} similarity - Similarity percentage
+   * @returns {string} Bootstrap color class
+   */
+  const getSimilarityColorClass = (similarity) => {
+    if (similarity > 85) return "danger";
+    if (similarity > 70) return "warning";
+    if (similarity > 50) return "primary";
+    return "info";
+  };
+
+  /**
+   * NEW: Format import source to be more user-friendly
+   * 
+   * @param {string} source - Source string from API
+   * @returns {string} Formatted source text
+   */
+  const formatSource = (source) => {
+    if (!source) return 'Unknown';
+    
+    if (source.includes('CSV Import')) {
+      return source.replace('CSV Import - ', '');
+    }
+    
+    return source;
+  };
+
+  /**
+   * NEW: Render a source badge with appropriate color
+   * 
+   * @param {string} source - Source string from API
+   * @returns {JSX.Element} Badge component
+   */
+  const renderSourceBadge = (source) => {
+    let variant = 'secondary';
+    
+    if (source?.includes('Local')) {
+      variant = 'success';
+    } else if (source?.includes('UN')) {
+      variant = 'primary';
+    } else if (source?.includes('Import')) {
+      variant = 'info';
+    }
+    
+    return (
+      <Badge bg={variant} className="me-2">
+        {formatSource(source)}
+      </Badge>
+    );
   };
 
   return (
@@ -105,7 +278,7 @@ function SearchScreen() {
         <h1 className="text-2xl font-bold mb-2">Advanced Screening</h1>
         <p className="text-gray-600">Search our database for individuals or entities.</p>
       </div>
-
+      
       {/* Search card */}
       <Card className="mb-4 dashboard-card">
         <Card.Body className="p-4">
@@ -185,17 +358,22 @@ function SearchScreen() {
                 <p className="mb-3">Found <span className="text-primary font-semibold">{searchResults.length}</span> potential matches</p>
                 {searchResults.map((result, index) => {
                   const similarity = result.similarityPercentage || 0;
-                  let badgeClass = "info";
-                  if (similarity > 85) badgeClass = "danger";
-                  else if (similarity > 70) badgeClass = "warning";
+                  let badgeClass = getSimilarityColorClass(similarity);
                   
                   return (
                     <Card key={index} className="mb-3 result-card">
                       <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
                         <Col xs={5}>
                           <h6 className="mb-0 font-semibold">
-                            {result.firstName} {result.secondName} {result.thirdName}
+                            {result.firstName} {result.secondName} {result.thirdName || result.name}
                           </h6>
+                          {/* NEW: Show source badge */}
+                          <div className="mt-1">
+                            {renderSourceBadge(result.source)}
+                            {result.listType && (
+                              <Badge bg="secondary" className="me-1">{result.listType}</Badge>
+                            )}
+                          </div>
                         </Col>
                         
                         <Col xs={4} className="text-center">
@@ -236,10 +414,35 @@ function SearchScreen() {
                                   <td>{result.thirdName}</td>
                                 </tr>
                               )}
+                              {result.name && (
+                                <tr>
+                                  <th className="bg-light">Entity Name</th>
+                                  <td>{result.name}</td>
+                                </tr>
+                              )}
                               {result.full_name && (
                                 <tr>
                                   <th className="bg-light">Full Name</th>
                                   <td>{result.full_name}</td>
+                                </tr>
+                              )}
+                              {/* NEW: Show reference number */}
+                              {result.referenceNumber && (
+                                <tr>
+                                  <th className="bg-light">Reference Number</th>
+                                  <td>{result.referenceNumber}</td>
+                                </tr>
+                              )}
+                              {result.dateOfBirth && (
+                                <tr>
+                                  <th className="bg-light">Date of Birth</th>
+                                  <td>{formatDate(result.dateOfBirth)}</td>
+                                </tr>
+                              )}
+                              {result.nicNumber && (
+                                <tr>
+                                  <th className="bg-light">NIC Number</th>
+                                  <td>{result.nicNumber}</td>
                                 </tr>
                               )}
                               {result.aliasNames && result.aliasNames.length > 0 && (
@@ -248,10 +451,30 @@ function SearchScreen() {
                                   <td>{result.aliasNames.join(', ')}</td>
                                 </tr>
                               )}
+                              {/* NEW: Show addresses for entities */}
+                              {result.addresses && result.addresses.length > 0 && (
+                                <tr>
+                                  <th className="bg-light">Addresses</th>
+                                  <td>
+                                    <ul className="mb-0 ps-3">
+                                      {result.addresses.map((address, i) => (
+                                        <li key={i}>{address}</li>
+                                      ))}
+                                    </ul>
+                                  </td>
+                                </tr>
+                              )}
                               {result.source && (
                                 <tr>
                                   <th className="bg-light">Source</th>
                                   <td>{result.source}</td>
+                                </tr>
+                              )}
+                              {/* NEW: Show source file for imports */}
+                              {result.sourceFile && (
+                                <tr>
+                                  <th className="bg-light">Source File</th>
+                                  <td>{result.sourceFile}</td>
                                 </tr>
                               )}
                               {result.type && (
@@ -269,7 +492,20 @@ function SearchScreen() {
                               {result.similarityPercentage && (
                                 <tr>
                                   <th className="bg-light">Similarity %</th>
-                                  <td>{result.similarityPercentage}%</td>
+                                  <td>
+                                    <div className="progress" style={{ height: '20px' }}>
+                                      <div 
+                                        className={`progress-bar bg-${badgeClass}`} 
+                                        role="progressbar" 
+                                        style={{ width: `${result.similarityPercentage}%` }}
+                                        aria-valuenow={result.similarityPercentage} 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100"
+                                      >
+                                        {result.similarityPercentage}%
+                                      </div>
+                                    </div>
+                                  </td>
                                 </tr>
                               )}
                               {result.score && (
@@ -327,6 +563,13 @@ function SearchScreen() {
                   <span className="font-medium">Last Updated</span>
                   <span className="stat-value" style={{ fontSize: '1.25rem' }}>{lastUpdated || 'N/A'}</span>
                 </div>
+                {/* NEW: Show imported records count */}
+                {importStats.totalImported > 0 && (
+                  <div className="d-flex justify-content-between align-items-center mt-3 p-2 bg-light rounded">
+                    <span className="font-medium">Imported Records</span>
+                    <span className="stat-value" style={{ fontSize: '1.25rem' }}>{importStats.totalImported}</span>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -349,6 +592,13 @@ function SearchScreen() {
                   >
                     <i className="bi bi-arrow-clockwise me-2"></i> Refresh Data
                   </Button>
+                  {/* NEW: Show import information button */}
+                  <Button 
+                    className="btn btn-secondary btn-ripple w-100"
+                    onClick={() => setShowImportInfo(!showImportInfo)}
+                  >
+                    <i className="bi bi-file-earmark-arrow-down me-2"></i> Import Information
+                  </Button>
                   <Button 
                     className="btn btn-secondary btn-ripple w-100" 
                     onClick={() => {
@@ -368,6 +618,73 @@ function SearchScreen() {
           </Col>
         </Row>
       </div>
+      
+      {/* NEW: Import information section */}
+      {showImportInfo && (
+        <div className="mt-4 mb-4 slide-up">
+          <Card className="dashboard-card">
+            <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
+              <h5 className="mb-0 font-semibold">Recent Imports</h5>
+              <Button 
+                variant="outline-secondary" 
+                size="sm"
+                onClick={() => setShowImportInfo(false)}
+              >
+                <i className="bi bi-x-lg"></i>
+              </Button>
+            </Card.Header>
+            <Card.Body className="p-3">
+              {importStats.recentImports.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                  <p className="text-gray-600">No recent imports found</p>
+                  <p className="text-gray-500 small">Visit the Import section to upload CSV files</p>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Filename</th>
+                        <th>Status</th>
+                        <th>Records</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importStats.recentImports.map((imp, index) => (
+                        <tr key={imp._id || index}>
+                          <td>{imp.filename}</td>
+                          <td>
+                            <Badge 
+                              bg={imp.status === 'completed' ? 'success' : 
+                                 imp.status === 'failed' ? 'danger' : 
+                                 imp.status === 'processing' ? 'warning' : 'info'}
+                            >
+                              {imp.status}
+                            </Badge>
+                          </td>
+                          <td>{imp.entriesUpdated || 0}</td>
+                          <td>{formatDate(imp.createdAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div className="text-center mt-3">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => window.location.href = '/import'}
+                >
+                  <i className="bi bi-arrow-right me-1"></i> Go to Import Section
+                </Button>
+              </div>
+            </Card.Body>
+          </Card>
+        </div>
+      )}
     </Container>
   );
 }
