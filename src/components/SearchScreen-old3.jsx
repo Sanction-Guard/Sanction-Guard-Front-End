@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from './SearchContext';
-import { performSearch } from '../services/searchPerformanceService';
-import { recordSearchTiming } from '../services/dashboardService';
-import databaseStatusService from '../services/databaseStatusService';
-import auditLogService from '../services/auditLogService';
 import '../styles/layouts/SearchScreen.css';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
@@ -21,7 +17,8 @@ import '../styles/components/Animation.css';
  * It handles searching for individuals and entities in the sanctions database
  * and displays the results with similarity scores.
  * 
- * The component has been enhanced to track performance metrics for dashboard display.
+ * The component has been modified to better display imported data from CSV files
+ * by adding source information and improved result display.
  * 
  * @returns {JSX.Element} The search screen UI
  */
@@ -33,8 +30,7 @@ function SearchScreen() {
     totalMatches, 
     setTotalMatches, 
     searchResults, 
-    setSearchResults,
-    recordSearchPerformance 
+    setSearchResults 
   } = useSearch();
   
   // Local state for search form and results
@@ -98,282 +94,100 @@ Country: ${result.country || 'N/A'}
    * @async
    * @returns {void}
    */
-//   const handleSearch = async () => {
-//     if (!searchTerm.trim()) {
-//       setError('Please enter a search term');
-//       return;
-//     }
-
-//     try {
-//       setLoading(true);
-//       setError(null);
-//       setTotalSearches((prev) => prev + 1);
-
-//       // Record start time for performance tracking
-//       const startTime = performance.now();
-
-//       // Use the search performance service for tracking
-//       let results;
-//       try {
-//         // Try the performSearch service first
-//         results = await performSearch(searchTerm, searchType);
-//       } catch (searchErr) {
-//         // Fall back to direct API call if service fails
-//         const response = await fetch('http://localhost:3001/api/search/search', {
-//           method: 'POST',
-//           headers: {
-//             'Content-Type': 'application/json',
-//           },
-//           body: JSON.stringify({ searchTerm, searchType }),
-//         });
-
-//         if (!response.ok) {
-//           throw new Error(`Search failed: ${response.statusText}`);
-//         }
-
-//         results = await response.json();
-//       }
-      
-//       // Calculate execution time for logging
-//       const endTime = performance.now();
-//       const executionTime = endTime - startTime;
-      
-//       // Record search timing for dashboard metrics
-//       recordSearchTiming(executionTime);
-      
-//       // Filter the results by similarity threshold (as a backup in case server doesn't filter)
-//       const filteredResults = results.filter(result => 
-//         parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
-//       );
-
-//       // Store flagged results (matches above 90%)
-//       const flagged = filteredResults.filter(result => 
-//         parseFloat(result.similarityPercentage) >= 90
-//       );
-
-//       // Append new flagged results to existing flagged results
-//       setFlaggedResults((prev) => {
-//         const newFlaggedResults = [...prev, ...flagged];
-//         // Remove duplicates based on a unique identifier (e.g., result.id or full name)
-//         const uniqueFlaggedResults = Array.from(new Set(newFlaggedResults.map(result => result.id || (result.firstName + result.secondName) || result.fullName)))
-//           .map(id => newFlaggedResults.find(result => result.id === id || (result.firstName + result.secondName) === id || result.fullName === id));
-//         return uniqueFlaggedResults;
-//       });
-
-//       setSearchResults(filteredResults);
-//       setExpandedResults({});
-//       setTotalMatches((prev) => prev + filteredResults.length);
-
-//       // Record search performance if context function exists
-//       if (typeof recordSearchPerformance === 'function') {
-//         recordSearchPerformance(executionTime / 1000, filteredResults.length);
-//       }
-
-//       // Log search activity
-//       try {
-//         // Try to use the audit log service
-//         if (auditLogService && typeof auditLogService.createAuditLog === 'function') {
-//           await auditLogService.createAuditLog({
-//             searchTerm,
-//             searchType,
-//             userId: 'user123',  
-//             action: 'Search',
-//             timestamp: new Date().toISOString(),
-//             resultCount: filteredResults.length,
-//             executionTime: executionTime / 1000 // Convert to seconds
-//           });
-//         } else {
-//           // Fall back to original log approach
-//           const logResponse = await fetch('http://localhost:3001/api/search/search', {
-//             method: 'POST',
-//             headers: {
-//               'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//               searchTerm,
-//               searchType,
-//               userId: 'user123',  
-//               action: 'Search',
-//               timestamp: new Date().toISOString(),
-//             }),
-//           });
-      
-//           if (!logResponse.ok) {
-//             console.warn('Failed to log search data, but search was successful');
-//           }
-//         }
-//       } catch (logErr) {
-//         // Don't let logging errors affect the main search functionality
-//         console.warn('Error logging search:', logErr);
-//       }
-  
-//       // Only add analytics data if we have results above threshold
-//       if (filteredResults.length > 0) {
-//         setAnalyticsData(prev => [
-//           ...prev,
-//           {
-//             searchedName: searchTerm,
-//             matchedName: filteredResults[0].fullName || filteredResults[0].firstName + ' ' + filteredResults[0].secondName,
-//             dateOfBirth: filteredResults[0].dateOfBirth || '-',
-//             nicNumber: filteredResults[0].nicNumber || '-',
-//             timestamp: new Date().toLocaleString(),
-//             executionTime: (executionTime / 1000).toFixed(2) + 's' // Add execution time info
-//           }
-//         ]);
-//       }
-//     } catch (err) {
-//       console.error('Search error:', err);
-//       setError(`Error searching: ${err.message}`);
-//       setSearchResults([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-    const handleSearch = async () => {
-  if (!searchTerm.trim()) {
-    setError('Please enter a search term');
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError(null);
-    setTotalSearches((prev) => prev + 1);
-
-    // Record start time for performance tracking
-    const startTime = performance.now();
-
-    // Make the API call
-    const response = await fetch('http://localhost:3001/api/search/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ searchTerm, searchType }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Search failed: ${response.statusText}`);
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setError('Please enter a search term');
+      return;
     }
 
-    const results = await response.json();
-    
-    // Calculate execution time
-    const endTime = performance.now();
-    const executionTime = endTime - startTime;
-    
-    // Record the search timing and update records estimate
-    recordSearchTiming(executionTime);
-    if (results.length > 0) {
-      updateRecordsEstimate(results.length);
-    }
-    
-    // Filter the results by similarity threshold
-    const filteredResults = results.filter(result => 
-      parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
-    );
-
-    // Store flagged results (matches above 90%)
-    const flagged = filteredResults.filter(result => 
-      parseFloat(result.similarityPercentage) >= 90
-    );
-
-    // Append new flagged results to existing flagged results
-    setFlaggedResults((prev) => {
-      const newFlaggedResults = [...prev, ...flagged];
-      // Remove duplicates based on a unique identifier
-      const uniqueFlaggedResults = Array.from(new Set(newFlaggedResults.map(result => result.id || result.fullName)))
-        .map(id => newFlaggedResults.find(result => result.id === id || result.fullName === id));
-      return uniqueFlaggedResults;
-    });
-
-    setSearchResults(filteredResults);
-    setExpandedResults({});
-    setTotalMatches((prev) => prev + filteredResults.length);
-
-    // Update search history
-    updateSearchHistory({
-      term: searchTerm,
-      type: searchType,
-      resultCount: filteredResults.length,
-      executionTime: executionTime / 1000
-    });
-
-    // Try to log search data
     try {
-      const logResponse = await fetch('http://localhost:3001/api/search/search', {
+      setLoading(true);
+      setError(null);
+      setTotalSearches((prev) => prev + 1);
+
+      // Fixed: Removed trailing question mark from URL
+      const response = await fetch('http://localhost:3001/api/search/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          searchTerm,
-          searchType,
-          userId: 'user123',  
-          action: 'Search',
-          timestamp: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ searchTerm, searchType }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
+
+      const results = await response.json();
+      
+      // Filter the results by similarity threshold (as a backup in case server doesn't filter)
+      const filteredResults = results.filter(result => 
+        parseFloat(result.similarityPercentage) >= SIMILARITY_THRESHOLD
+      );
+
+      // Store flagged results (matches above 90%)
+      const flagged = filteredResults.filter(result => 
+        parseFloat(result.similarityPercentage) >= 90
+      );
+
+      // Append new flagged results to existing flagged results
+      setFlaggedResults((prev) => {
+        const newFlaggedResults = [...prev, ...flagged];
+        // Remove duplicates based on a unique identifier (e.g., result.id or full name)
+        const uniqueFlaggedResults = Array.from(new Set(newFlaggedResults.map(result => result.id || result.fullName)))
+          .map(id => newFlaggedResults.find(result => result.id === id || result.fullName === id));
+        return uniqueFlaggedResults;
+      });
+
+      setSearchResults(filteredResults);
+      setExpandedResults({});
+      setTotalMatches((prev) => prev + filteredResults.length);
+
+      // Try to log search data, but don't fail the main search if logging fails
+      try {
+        // Fixed: Use consistent endpoint and removed trailing question mark from URL
+        // Also using endpoint from the second file which had "search?" instead of "log"
+        const logResponse = await fetch('http://localhost:3001/api/search/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            searchTerm,
+            searchType,
+            userId: 'user123',  
+            action: 'Search',
+            timestamp: new Date().toISOString(),
+          }),
+        });
+    
+        if (!logResponse.ok) {
+          console.warn('Failed to log search data, but search was successful');
+        }
+      } catch (logErr) {
+        // Don't let logging errors affect the main search functionality
+        console.warn('Error logging search:', logErr);
+      }
   
-      if (!logResponse.ok) {
-        console.warn('Failed to log search data, but search was successful');
+      // Only add analytics data if we have results above threshold
+      if (filteredResults.length > 0) {
+        setAnalyticsData(prev => [
+          ...prev,
+          {
+            searchedName: searchTerm,
+            matchedName: filteredResults[0].fullName || filteredResults[0].firstName + ' ' + filteredResults[0].secondName,
+            dateOfBirth: filteredResults[0].dateOfBirth || '-',
+            nicNumber: filteredResults[0].nicNumber || '-',
+            timestamp: new Date().toLocaleString(),
+          }
+        ]);
       }
-    } catch (logErr) {
-      console.warn('Error logging search:', logErr);
-    }
-
-    // Only add analytics data if we have results above threshold
-    if (filteredResults.length > 0) {
-      setAnalyticsData(prev => [
-        ...prev,
-        {
-          searchedName: searchTerm,
-          matchedName: filteredResults[0].fullName || filteredResults[0].firstName + ' ' + filteredResults[0].secondName,
-          dateOfBirth: filteredResults[0].dateOfBirth || '-',
-          nicNumber: filteredResults[0].nicNumber || '-',
-          timestamp: new Date().toLocaleString(),
-          executionTime: (executionTime / 1000).toFixed(2) + 's' // Add execution time info
-        }
-      ]);
-    }
-  } catch (err) {
-    console.error('Search error:', err);
-    setError(`Error searching: ${err.message}`);
-    setSearchResults([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  /**
-   * Fetches total record count from the search API or estimates
-   * @returns {Promise<number>} Total records count
-   */
-  const fetchTotalRecords = async () => {
-    try {
-      // Try to get the status from search API first
-      const response = await fetch('http://localhost:3001/api/search/status');
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.totalRecords) {
-          return data.totalRecords;
-        }
-      }
-      
-      // Fallback: estimate based on search results or use stored value
-      const storedRecords = localStorage.getItem('estimatedTotalRecords');
-      if (storedRecords) {
-        return parseInt(storedRecords);
-      }
-      
-      // Default fallback
-      return 3456; // Match the dummy data from original dashboard
-    } catch (error) {
-      console.error('Error fetching total records:', error);
-      // Return a default value
-      return 3456;
+    } catch (err) {
+      console.error('Search error:', err);
+      setError(`Error searching: ${err.message}`);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -385,21 +199,23 @@ Country: ${result.country || 'N/A'}
    */
   const fetchDatabaseStatus = async () => {
     try {
-      // Check database status using our service if available
-      if (databaseStatusService && typeof databaseStatusService.checkAllDatabaseStatus === 'function') {
-        const dbStatus = await databaseStatusService.checkAllDatabaseStatus();
+      // Make API request to status endpoint
+      // Try the enhanced endpoint first
+      let response = await fetch('http://localhost:3001/api/search/status');
+      
+      // If that fails, try the alternative endpoint
+      if (!response.ok) {
+        response = await fetch('http://localhost:3001/api/audit-logs');
       }
       
-      // Fetch total records
-      const totalRecs = await fetchTotalRecords();
-      setTotalRecords(totalRecs);
-      
-      // Set last updated timestamp
-      const lastUpdatedDate = new Date();
-      setLastUpdated(lastUpdatedDate.toLocaleDateString() + ' ' + lastUpdatedDate.toLocaleTimeString());
+      if (!response.ok) {
+        throw new Error('Failed to fetch database status');
+      }
 
-      // Store record count in localStorage for dashboard
-      localStorage.setItem('estimatedTotalRecords', totalRecs.toString());
+      // Parse response and update state
+      const status = await response.json();
+      setTotalRecords(status.totalRecords);
+      setLastUpdated(status.lastUpdated);
 
       // Fetch import statistics
       fetchImportStats();
