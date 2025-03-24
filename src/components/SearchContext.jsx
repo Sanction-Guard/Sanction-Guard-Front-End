@@ -60,7 +60,7 @@ export const SearchProvider = ({ children }) => {
       setTotalSearches(prev => prev + 1);
       
       // Make the API request
-      const response = await fetch('http://localhost:3001/api/search/search', {
+      const response = await fetch('http://54.197.3.150:3001/api/search/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
