@@ -80,7 +80,7 @@ Country: ${result.country || 'N/A'}
     URL.revokeObjectURL(url);
   };
   
-  // State for showing import information
+  // NEW: State for showing import information
   const [showImportInfo, setShowImportInfo] = useState(false);
   const [importStats, setImportStats] = useState({ 
     totalImported: 0, 
@@ -105,7 +105,6 @@ Country: ${result.country || 'N/A'}
       setError(null);
       setTotalSearches((prev) => prev + 1);
 
-      // Fixed: Removed trailing question mark from URL
       const response = await fetch('http://localhost:3001/api/search/search', {
         method: 'POST',
         headers: {
@@ -143,30 +142,23 @@ Country: ${result.country || 'N/A'}
       setExpandedResults({});
       setTotalMatches((prev) => prev + filteredResults.length);
 
-      // Try to log search data, but don't fail the main search if logging fails
-      try {
-        // Fixed: Use consistent endpoint and removed trailing question mark from URL
-        // Also using endpoint from the second file which had "search?" instead of "log"
-        const logResponse = await fetch('http://localhost:3001/api/search/search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            searchTerm,
-            searchType,
-            userId: 'user123',  
-            action: 'Search',
-            timestamp: new Date().toISOString(),
-          }),
-        });
-    
-        if (!logResponse.ok) {
-          console.warn('Failed to log search data, but search was successful');
-        }
-      } catch (logErr) {
-        // Don't let logging errors affect the main search functionality
-        console.warn('Error logging search:', logErr);
+      // Sending the search log to database
+      const logResponse = await fetch('http://localhost:3001/api/search/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchTerm,
+          searchType,
+          userId: 'user123',  
+          action: 'Search',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+  
+      if (!logResponse.ok) {
+        throw new Error('Failed to log search data');
       }
   
       // Only add analytics data if we have results above threshold
@@ -175,7 +167,7 @@ Country: ${result.country || 'N/A'}
           ...prev,
           {
             searchedName: searchTerm,
-            matchedName: filteredResults[0].fullName || filteredResults[0].firstName + ' ' + filteredResults[0].secondName,
+            matchedName: filteredResults[0].fullName,
             dateOfBirth: filteredResults[0].dateOfBirth || '-',
             nicNumber: filteredResults[0].nicNumber || '-',
             timestamp: new Date().toLocaleString(),
@@ -217,7 +209,7 @@ Country: ${result.country || 'N/A'}
       setTotalRecords(status.totalRecords);
       setLastUpdated(status.lastUpdated);
 
-      // Fetch import statistics
+      // NEW: Fetch import statistics
       fetchImportStats();
     } catch (err) {
       console.error('Error fetching database status:', err);
@@ -421,16 +413,16 @@ Country: ${result.country || 'N/A'}
         </Alert>
       )}
 
-      {/* Button to navigate to Alerts page */}
+      {/* Button to navigate to Alerts page - from paste-2.txt */}
       <div className="mb-4 slide-up">
-        <Button variant="warning" onClick={navigateToAlerts} className="w-100" id="view-flagged">
+        <Button variant="warning" onClick={navigateToAlerts} className="w-100" id = "view-flagged">
           <i className="bi bi-flag-fill me-2"></i>
           View Flagged Results ({flaggedResults.length})
         </Button>
       </div>
 
       {/* Search results */}
-      {searchResults && searchResults.length > 0 && (
+      {searchResults && (
         <Card className="mb-4 dashboard-card slide-up">
           <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
             <h5 className="mb-0 font-semibold">Search Results</h5>
@@ -449,7 +441,7 @@ Country: ${result.country || 'N/A'}
               <div>
                 <p className="mb-3">Found <span className="text-primary font-semibold">{searchResults.length}</span> potential matches</p>
                 {searchResults.map((result, index) => {
-                  const similarity = parseFloat(result.similarityPercentage) || 0;
+                  const similarity = result.similarityPercentage || 0;
                   let badgeClass = getSimilarityColorClass(similarity);
                   
                   return (
@@ -679,7 +671,7 @@ Country: ${result.country || 'N/A'}
                       fetchDatabaseStatus();
                       setTotalSearches(0);
                       setTotalMatches(0);
-                      setSearchResults([]);
+                      setSearchResults(null);
                     }}
                   >
                     <i className="bi bi-arrow-clockwise me-2"></i> Refresh Data

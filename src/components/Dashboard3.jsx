@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import DashboardCard from './DashboardCard';
-import axios from 'axios';
 import '../styles/Base.css';
 import '../styles/layouts/Dashboard.css';
 import '../styles/components/Card.css';
@@ -54,7 +53,6 @@ const Dashboard = () => {
       current: 3456,
       trend: 'up',
       percentage: '12.5',
-      color: '#4361ee',
       data: [
         { value: 30 }, { value: 40 }, { value: 35 }, 
         { value: 50 }, { value: 49 }, { value: 60 }, 
@@ -91,162 +89,61 @@ const Dashboard = () => {
   // State for database status animation
   const [animateDbStatus, setAnimateDbStatus] = useState(false);
   
-  // Function to fetch total records from API
-  const fetchTotalRecords = async () => {
-    try {
-      // Try to get database status from API
-      const response = await axios.get('http://localhost:3001/api/search/status');
-      
-      if (response.data && response.data.totalRecords) {
-        return response.data.totalRecords;
-      }
-      
-      // Try alternate approach - estimate from search results
-      try {
-        const sampleSearch = await axios.post('http://localhost:3001/api/search/search', {
-          searchTerm: '',  // Empty search to get potential counts
-          searchType: 'individual'
-        });
-        
-        // Store the count for future reference
-        if (sampleSearch.data && sampleSearch.data.length) {
-          localStorage.setItem('estimatedTotalRecords', sampleSearch.data.length.toString());
-          return sampleSearch.data.length;
-        }
-      } catch (searchErr) {
-        console.log('Fallback search approach failed:', searchErr);
-      }
-      
-      // If we reach here, try to get from localStorage
-      const storedCount = localStorage.getItem('estimatedTotalRecords');
-      if (storedCount) {
-        return parseInt(storedCount);
-      }
-      
-      // Default fallback
-      return 3456;
-    } catch (error) {
-      console.error('Error fetching total records:', error);
-      // Use stored value or default
-      const storedCount = localStorage.getItem('estimatedTotalRecords');
-      return storedCount ? parseInt(storedCount) : 3456;
-    }
-  };
-  
-  // Helper function to determine log status
-  const determineLogStatus = (log) => {
-    if (log.error) return 'error';
-    if (log.warning) return 'warning';
-    if (log.status) return log.status;
-    
-    // Default to 'success' for most activities
-    return 'success';
-  };
-  
-  // Function to calculate average processing time
-  const calculateAvgProcessingTime = () => {
-    try {
-      // Get stored search timings
-      const storedTimings = localStorage.getItem('searchTimings');
-      if (storedTimings) {
-        const timings = JSON.parse(storedTimings);
-        if (timings.length > 0) {
-          const avgTime = timings.reduce((sum, time) => sum + time, 0) / timings.length;
-          return avgTime.toFixed(1);
-        }
-      }
-      
-      // Fallback to default
-      return '3.2';
-    } catch (error) {
-      console.error('Error calculating processing time:', error);
-      return '3.2';
-    }
-  };
-  
-  // Function to get real audit logs
-  const fetchRealAuditLogs = async () => {
-    try {
-      const response = await axios.get('http://localhost:3001/api/audit-logs');
-      if (response.data && Array.isArray(response.data)) {
-        // Sort by timestamp (newest first)
-        const sortedLogs = response.data.sort((a, b) => 
-          new Date(b.timestamp) - new Date(a.timestamp)
-        );
-        
-        // Store in localStorage for offline access
-        localStorage.setItem('cachedAuditLogs', JSON.stringify(sortedLogs));
-        
-        return sortedLogs;
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-      return [];
-    }
-  };
-
   // Fetch dashboard data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // 1. Get real total records count
-        const totalRecs = await fetchTotalRecords();
-        
-        // 2. Get real processing time if available
-        const avgTime = calculateAvgProcessingTime();
-        
-        // 3. Update metrics
-        // Generate realistic data for charts based on current values
-        const recordsData = [];
-        const baseRecordsValue = Math.max(totalRecs * 0.7, 100); // Start at 70% of current or 100 min
-        for (let i = 0; i < 9; i++) {
-          // Create slightly increasing trend with some variation
-          const growth = 1 + (i * 0.04) + (Math.random() * 0.02);
-          recordsData.push({ value: Math.round(baseRecordsValue * growth) });
-        }
-        
-        const timeData = [];
-        const baseTimeValue = parseFloat(avgTime) * 1.5; // Start higher than current
-        for (let i = 0; i < 9; i++) {
-          // Create slightly decreasing trend with some variation
-          const reduction = 1 - (i * 0.05) + (Math.random() * 0.02);
-          timeData.push({ value: parseFloat((baseTimeValue * reduction).toFixed(1)) });
-        }
-        
-        // Calculate percentage changes from previous to current
-        const recordsPercentage = ((recordsData[8].value - recordsData[7].value) / recordsData[7].value * 100).toFixed(1);
-        const timePercentage = ((timeData[7].value - timeData[8].value) / timeData[7].value * 100).toFixed(1);
-        
-        setMetrics({
-          totalRecords: {
-            current: totalRecs,
-            trend: recordsPercentage > 0 ? 'up' : 'down',
-            percentage: Math.abs(recordsPercentage).toString(),
-            data: recordsData
-          },
-          processingTime: {
-            current: avgTime,
-            trend: 'down', // For processing time, down is good
-            percentage: Math.abs(timePercentage).toString(),
-            data: timeData
-          }
-        });
-        
-        // Try to get real audit logs and update activity list
+        // Try to load real metrics if available
         try {
-          const logs = await fetchRealAuditLogs();
+          const storedMetrics = localStorage.getItem('performanceMetrics');
+          if (storedMetrics) {
+            const perfMetrics = JSON.parse(storedMetrics);
+            
+            // Process total records data
+            const recordsData = perfMetrics.totalRecords.history.map(item => ({
+              value: item.value
+            }));
+            
+            // Process processing time data
+            const timeData = perfMetrics.processingTime.history.map(item => ({
+              value: item.value
+            }));
+            
+            // Update metrics
+            setMetrics({
+              totalRecords: {
+                current: perfMetrics.totalRecords.current,
+                trend: 'up',
+                percentage: '12.5',
+                data: recordsData.length > 0 ? recordsData : metrics.totalRecords.data
+              },
+              processingTime: {
+                current: perfMetrics.processingTime.current.toFixed(1),
+                trend: 'down',
+                percentage: '8.7',
+                data: timeData.length > 0 ? timeData : metrics.processingTime.data
+              }
+            });
+          }
+        } catch (metricsErr) {
+          console.error('Error loading metrics:', metricsErr);
+          // Keep using default metrics if there's an error
+        }
+        
+        // Try to get real audit logs
+        try {
+          const logs = await fetchAuditLogs();
           if (logs && logs.length > 0) {
-            // Transform logs to activities format
+            // Transform logs to activities
             const recentLogs = logs.slice(0, 5);
             const newActivities = recentLogs.map(log => ({
               id: log._id || Math.random().toString(36).substr(2, 9),
               action: log.action === 'search?' ? 'Search' : log.action || 'System Activity',
               user: log.userId || 'System User',
               time: log.timestamp ? getTimeAgo(new Date(log.timestamp)) : '5 minutes ago',
-              status: determineLogStatus(log)
+              status: 'success'
             }));
             
             if (newActivities.length > 0) {
@@ -256,61 +153,6 @@ const Dashboard = () => {
         } catch (logsErr) {
           console.error('Error processing logs:', logsErr);
           // Keep using default activities if there's an error
-        }
-        
-        // Check database connection status
-        try {
-          // Try to fetch data from multiple endpoints to check status
-          const endpoints = [
-            'http://localhost:3001/api/search/status',
-            'http://localhost:3001/api/audit-logs',
-            'http://localhost:3001/api/imports/recent'
-          ];
-          
-          let successCount = 0;
-          let totalChecks = endpoints.length;
-          
-          for (const endpoint of endpoints) {
-            try {
-              const response = await axios.get(endpoint, { timeout: 2000 });
-              if (response.status >= 200 && response.status < 300) {
-                successCount++;
-              }
-            } catch (endpointErr) {
-              console.log(`Endpoint ${endpoint} check failed`);
-            }
-          }
-          
-          // Update database status based on connectivity
-          const overallStatus = 
-            successCount === totalChecks ? 'healthy' : 
-            successCount > 0 ? 'degraded' : 'error';
-          
-          const healthPercentage = (successCount / totalChecks) * 100;
-          
-          setDbStatus({
-            overall: overallStatus,
-            details: {
-              main: { 
-                status: successCount > 0 ? 'healthy' : 'error', 
-                health: successCount > 0 ? 100 : 0 
-              },
-              backup: { 
-                status: successCount > 0 ? 'healthy' : 'degraded', 
-                health: successCount > 0 ? 98 : 70 
-              },
-              archive: { 
-                status: 'healthy', 
-                health: 87 
-              }
-            }
-          });
-          
-          // Trigger animation if status changed
-          setAnimateDbStatus(true);
-          setTimeout(() => setAnimateDbStatus(false), 500);
-        } catch (dbStatusErr) {
-          console.error('Error checking database status:', dbStatusErr);
         }
         
         setLoading(false);
@@ -419,34 +261,18 @@ const Dashboard = () => {
             <div className="flex items-center">
               <div 
                 className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
-                style={{ 
-                  backgroundColor: dbStatus.overall === 'healthy' ? '#4ade8020' :
-                                   dbStatus.overall === 'degraded' ? '#ffa50020' :
-                                   '#ff000020'
-                }}
+                style={{ backgroundColor: '#4ade8020' }}
               >
                 {/* Status indicator dot */}
-                <span className={`text-${getStatusClass(dbStatus.overall)}`}>⬤</span>
+                <span className="text-success">⬤</span>
               </div>
               <div>
-                <h3 className="font-medium">
-                  {dbStatus.overall === 'healthy' ? 'Systems Operational' :
-                   dbStatus.overall === 'degraded' ? 'Systems Degraded' :
-                   'Systems Error'}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {dbStatus.overall === 'healthy' ? 'All databases are running smoothly' :
-                   dbStatus.overall === 'degraded' ? 'Some systems experiencing issues' :
-                   'Database connection issues detected'}
-                </p>
+                <h3 className="font-medium">Systems Operational</h3>
+                <p className="text-sm text-gray-500">All databases are running smoothly</p>
               </div>
             </div>
             <div>
-              <span className={`status-badge ${getStatusClass(dbStatus.overall)}`}>
-                {dbStatus.overall === 'healthy' ? 'Healthy' :
-                 dbStatus.overall === 'degraded' ? 'Warning' :
-                 'Error'}
-              </span>
+              <span className="status-badge healthy">Healthy</span>
             </div>
           </div>
           
@@ -454,14 +280,12 @@ const Dashboard = () => {
             <div className="bg-light rounded p-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Main Database</span>
-                <span className={`status-badge ${getStatusClass(dbStatus.details.main.status)}`}>
-                  {getStatusLabel(dbStatus.details.main.status)}
-                </span>
+                <span className="status-badge healthy">Good</span>
               </div>
               <div className="w-full bg-medium-gray rounded-full h-2 mt-2">
                 <div 
-                  className={`bg-${getStatusClass(dbStatus.details.main.status)} h-2 rounded-full`} 
-                  style={{ width: `${dbStatus.details.main.health}%` }}
+                  className="bg-success h-2 rounded-full" 
+                  style={{ width: '100%' }}
                 ></div>
               </div>
             </div>
@@ -469,14 +293,12 @@ const Dashboard = () => {
             <div className="bg-light rounded p-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Backup Database</span>
-                <span className={`status-badge ${getStatusClass(dbStatus.details.backup.status)}`}>
-                  {getStatusLabel(dbStatus.details.backup.status)}
-                </span>
+                <span className="status-badge healthy">Good</span>
               </div>
               <div className="w-full bg-medium-gray rounded-full h-2 mt-2">
                 <div 
-                  className={`bg-${getStatusClass(dbStatus.details.backup.status)} h-2 rounded-full`} 
-                  style={{ width: `${dbStatus.details.backup.health}%` }}
+                  className="bg-success h-2 rounded-full" 
+                  style={{ width: '98%' }}
                 ></div>
               </div>
             </div>
@@ -484,14 +306,12 @@ const Dashboard = () => {
             <div className="bg-light rounded p-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Archive Database</span>
-                <span className={`status-badge ${getStatusClass(dbStatus.details.archive.status)}`}>
-                  {getStatusLabel(dbStatus.details.archive.status)}
-                </span>
+                <span className="status-badge healthy">Good</span>
               </div>
               <div className="w-full bg-medium-gray rounded-full h-2 mt-2">
                 <div 
-                  className={`bg-${getStatusClass(dbStatus.details.archive.status)} h-2 rounded-full`} 
-                  style={{ width: `${dbStatus.details.archive.health}%` }}
+                  className="bg-warning h-2 rounded-full" 
+                  style={{ width: '87%' }}
                 ></div>
               </div>
             </div>

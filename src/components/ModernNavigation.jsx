@@ -4,6 +4,7 @@ import '../styles/Base.css';
 import '../styles/layouts/Navigation.css';
 import '../styles/components/Animation.css';
 import logo from '../img/logo.png';
+import userAvatar from '../img/avatar.png'
 
 const ModernNavigation = () => {
   const location = useLocation();
@@ -70,7 +71,7 @@ const ModernNavigation = () => {
       <div className="nav-bottom">
         <div className="user-profile">
           <div className="avatar">
-            <img src="/placeholder-avatar.jpg" alt="User" />
+            <img src={userAvatar} alt="User" />
           </div>
           <div className="user-info">
             <h4>User Name</h4>

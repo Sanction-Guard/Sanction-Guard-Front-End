@@ -198,3 +198,48 @@
     background-color: var(--info);
     color: white;
 }
+
+/* Fix for dropdown menu visibility */
+.search-form-wrapper .dropdown-menu.show {
+    position: absolute;
+    z-index: 9999;
+    /* High z-index to be above other elements */
+    min-width: 10rem;
+    padding: 0.5rem 0;
+    margin: 0;
+    font-size: 1rem;
+    text-align: left;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+}
+
+/* Fix for the search container overflow */
+.search-container {
+    width: 100%;
+    margin: 0;
+    overflow: visible !important;
+}
+
+/* Ensure card doesn't clip dropdown */
+.dashboard-card {
+    overflow: visible !important;
+}
+
+/* Fix for dropdown toggle button visibility */
+.search-form-wrapper .dropdown {
+    position: relative;
+    z-index: 9999;
+    /* High z-index to be above other elements */
+}
+
+/* Set lower z-index for the warning button */
+.btn-warning {
+    position: relative;
+    z-index: 1;
+}
+
+#view-flagged {
+    margin-top: 50px;
+}
