@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col, Alert, Spinner, Dropdown, Badge } from 'react-bootstrap';
-import { useSearch } from './SearchContext';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-import ReportsAnalytics from "./ReportsAnalytics";
+import { useSearch } from './SearchContext';
 import '../styles/layouts/SearchScreen.css';
 import '../styles/Base.css';
 import '../styles/components/Card.css';
@@ -43,36 +42,21 @@ function SearchScreen() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [analyticsData, setAnalyticsData] = useState([]);
-  
-  // State for flagged results
+
   const [flaggedResults, setFlaggedResults] = useState(() => {
-    // Load flagged results from local storage on initial render
-    const savedFlaggedResults = localStorage.getItem('flaggedResults');
-    return savedFlaggedResults ? JSON.parse(savedFlaggedResults) : [];
-  });
-  
-  // NEW: State for showing import information
-  const [showImportInfo, setShowImportInfo] = useState(false);
-  const [importStats, setImportStats] = useState({ 
-    totalImported: 0, 
-    recentImports: [] 
-  });
-  
-  // Constants
-  const SIMILARITY_THRESHOLD = 70; // 70% threshold for display
-  const navigate = useNavigate(); // Hook for navigation
+      // Load flagged results from local storage on initial render
+      const savedFlaggedResults = localStorage.getItem('flaggedResults');
+      return savedFlaggedResults ? JSON.parse(savedFlaggedResults) : [];
+    });
+    const SIMILARITY_THRESHOLD = 70; // 70% threshold for display
+    const navigate = useNavigate(); // Hook for navigation
 
-  // Save flagged results to local storage whenever they change
-  useEffect(() => {
-    localStorage.setItem('flaggedResults', JSON.stringify(flaggedResults));
-  }, [flaggedResults]);
+    // Save flagged results to local storage whenever they change
+      useEffect(() => {
+        localStorage.setItem('flaggedResults', JSON.stringify(flaggedResults));
+      }, [flaggedResults]);
 
-  /**
-   * Function to export results to text file
-   * 
-   * @param {Array} results - Results to export
-   * @returns {void}
-   */
+      // Function to export results to text file
   const exportResultsToTextFile = (results) => {
     const text = results.map(result => {
       return `Name: ${result.firstName} ${result.secondName} ${result.thirdName}
@@ -94,6 +78,13 @@ Country: ${result.country || 'N/A'}
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
+  // NEW: State for showing import information
+  const [showImportInfo, setShowImportInfo] = useState(false);
+  const [importStats, setImportStats] = useState({ 
+    totalImported: 0, 
+    recentImports: [] 
+  });
 
   /**
    * Handle search form submission
@@ -102,23 +93,81 @@ Country: ${result.country || 'N/A'}
    * @async
    * @returns {void}
    */
+  // OLD handleSearch
+  // const handleSearch = async () => {
+  //   // Validate search term
+  //   if (!searchTerm.trim()) {
+  //     setError('Please enter a search term');
+  //     return;
+  //   }
+
+  //   try {
+  //     // Set loading state and clear any previous errors
+  //     setLoading(true);
+  //     setError(null);
+      
+  //     // Increment total searches counter
+  //     setTotalSearches((prev) => prev + 1);
+
+  //     // Make API request to search endpoint
+  //     const response = await fetch('http://localhost:3001/api/search/search', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ searchTerm, searchType }),
+  //     });
+
+  //     // Handle HTTP errors
+  //     if (!response.ok) {
+  //       throw new Error(`Search failed: ${response.statusText}`);
+  //     }
+
+  //     // Parse response JSON
+  //     const results = await response.json();
+      
+  //     // Update search results and reset expanded states
+  //     setSearchResults(results);
+  //     setExpandedResults({});
+      
+  //     // Update total matches counter
+  //     setTotalMatches((prev) => prev + results.length);
+
+  //     // Add this search to analytics data
+  //     setAnalyticsData(prev => [
+  //       ...prev,
+  //       {
+  //         searchedName: searchTerm,
+  //         matchedName: results.length > 0 ? results[0].fullName : 'No Match',
+  //         dateOfBirth: results.length > 0 ? results[0].dateOfBirth : '-',
+  //         nicNumber: results.length > 0 ? results[0].nicNumber : '-',
+  //         timestamp: new Date().toLocaleString(),
+  //       }
+  //     ]);
+
+  //   } catch (err) {
+  //     // Log and display error
+  //     console.error('Search error:', err);
+  //     setError(`Error searching: ${err.message}`);
+  //     setSearchResults([]);
+  //   } finally {
+  //     // Reset loading state
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSearch = async () => {
-    // Validate search term
     if (!searchTerm.trim()) {
       setError('Please enter a search term');
       return;
     }
 
     try {
-      // Set loading state and clear any previous errors
       setLoading(true);
       setError(null);
-      
-      // Increment total searches counter
       setTotalSearches((prev) => prev + 1);
 
-      // Make API request to search endpoint
-      const response = await fetch('http://localhost:3001/api/search/search', {
+      const response = await fetch('http://localhost:3001/api/search/search?', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,12 +175,10 @@ Country: ${result.country || 'N/A'}
         body: JSON.stringify({ searchTerm, searchType }),
       });
 
-      // Handle HTTP errors
       if (!response.ok) {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
-      // Parse response JSON
       const results = await response.json();
       
       // Filter the results by similarity threshold (as a backup in case server doesn't filter)
@@ -153,15 +200,12 @@ Country: ${result.country || 'N/A'}
         return uniqueFlaggedResults;
       });
 
-      // Update search results and reset expanded states
       setSearchResults(filteredResults);
       setExpandedResults({});
-      
-      // Update total matches counter
       setTotalMatches((prev) => prev + filteredResults.length);
 
-      // Log search data
-      const logResponse = await fetch('http://localhost:3001/api/search/log', {
+      // Sending the stuff to database
+      const logResponse = await fetch('http://localhost:3001/api/search/search?', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,15 +238,14 @@ Country: ${result.country || 'N/A'}
       }
 
     } catch (err) {
-      // Log and display error
       console.error('Search error:', err);
       setError(`Error searching: ${err.message}`);
       setSearchResults([]);
     } finally {
-      // Reset loading state
       setLoading(false);
     }
   };
+
 
   /**
    * Fetch database status to display record counts and last update
@@ -212,14 +255,8 @@ Country: ${result.country || 'N/A'}
    */
   const fetchDatabaseStatus = async () => {
     try {
-      // Make API request to status endpoint - try both endpoints
-      let response;
-      try {
-        response = await fetch('http://localhost:3001/api/search/status');
-      } catch (error) {
-        response = await fetch('http://localhost:3001/api/audit-logs');
-      }
-      
+      // Make API request to status endpoint
+      const response = await fetch('http://localhost:3001/api/search/status');
       if (!response.ok) {
         throw new Error('Failed to fetch database status');
       }
@@ -229,7 +266,7 @@ Country: ${result.country || 'N/A'}
       setTotalRecords(status.totalRecords);
       setLastUpdated(status.lastUpdated);
 
-      // Fetch import statistics
+      // NEW: Fetch import statistics
       fetchImportStats();
     } catch (err) {
       console.error('Error fetching database status:', err);
@@ -239,7 +276,7 @@ Country: ${result.country || 'N/A'}
   };
 
   /**
-   * Fetch import statistics from the API
+   * NEW: Fetch import statistics from the API
    * 
    * @async
    * @returns {void}
@@ -323,7 +360,7 @@ Country: ${result.country || 'N/A'}
   };
 
   /**
-   * Format import source to be more user-friendly
+   * NEW: Format import source to be more user-friendly
    * 
    * @param {string} source - Source string from API
    * @returns {string} Formatted source text
@@ -339,7 +376,7 @@ Country: ${result.country || 'N/A'}
   };
 
   /**
-   * Render a source badge with appropriate color
+   * NEW: Render a source badge with appropriate color
    * 
    * @param {string} source - Source string from API
    * @returns {JSX.Element} Badge component
@@ -362,15 +399,6 @@ Country: ${result.country || 'N/A'}
     );
   };
 
-  /**
-   * Navigate to Alerts page with flagged results
-   * 
-   * @returns {void}
-   */
-  const navigateToAlerts = () => {
-    navigate('/alerts', { state: { flaggedResults } });
-  };
-
   return (
     <Container className="search-container fade-in" style={{ marginTop: '0' }}>
       {/* Page header */}
@@ -386,17 +414,21 @@ Country: ${result.country || 'N/A'}
             e.preventDefault();
             handleSearch();
           }}>
-            <div className="d-flex gap-2">
-              <Form.Control
-                type="text"
-                placeholder="Enter name, entity, or identifier..."
-                className="flex-grow-1"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="d-flex gap-2 search-form-wrapper">
+              <div className="position-relative flex-grow-1">
+                <i className="bi bi-search position-absolute" style={{ left: '15px', top: '12px', color: '#6c757d' }}></i>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter name, entity, or identifier..."
+                  className="search-bar pl-4"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ paddingLeft: '40px' }}
+                />
+              </div>
               <Dropdown>
-                <Dropdown.Toggle variant="outline-secondary" id="dropdown-filter">
-                  Filter by {searchType === 'individual' ? 'Individual' : 'Entity'}
+                <Dropdown.Toggle className="btn btn-secondary" id="dropdown-filter">
+                  <i className="bi bi-funnel me-1"></i> {searchType === 'individual' ? 'Individual' : 'Entity'}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => setSearchType('individual')}>Individual</Dropdown.Item>
@@ -404,30 +436,51 @@ Country: ${result.country || 'N/A'}
                 </Dropdown.Menu>
               </Dropdown>
               <Button
-                variant="dark"
+                variant="primary"
                 type="submit"
+                className="btn btn-primary btn-ripple"
                 disabled={loading}
               >
-                {loading ? <Spinner animation="border" size="sm" /> : 'Screen'}
+                {loading ? (
+                  <div className="d-flex align-items-center">
+                    <span className="loading-spinner me-2"></span>
+                    <span>Searching...</span>
+                  </div>
+                ) : (
+                  <><i className="bi bi-search me-1"></i> Screen</>
+                )}
               </Button>
             </div>
           </Form>
         </Card.Body>
       </Card>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {/* Error message */}
+      {error && (
+        <Alert variant="danger" className="slide-up border-left-danger">
+          <div className="d-flex align-items-center">
+            <i className="bi bi-exclamation-circle text-danger me-2" style={{ fontSize: '1.25rem' }}></i>
+            <p className="mb-0">{error}</p>
+          </div>
+        </Alert>
+      )}
 
-      {/* Add a button to navigate to Alerts page */}
-      <Button variant="warning" onClick={navigateToAlerts} className="mb-4">
-        View Flagged Results ({flaggedResults.length})
-      </Button>
-
+      {/* Search results */}
       {searchResults && (
-        <Card className="mb-4">
-          <Card.Body>
-            <h5>Search Results (Minimum {SIMILARITY_THRESHOLD}% Similarity)</h5>
+        <Card className="mb-4 dashboard-card slide-up">
+          <Card.Header className="d-flex justify-content-between align-items-center bg-light p-3">
+            <h5 className="mb-0 font-semibold">Search Results</h5>
+            <span className="status-badge info">
+              {searchResults.length} {searchResults.length === 1 ? 'match' : 'matches'}
+            </span>
+          </Card.Header>
+          <Card.Body className="p-3">
             {searchResults.length === 0 ? (
-              <Alert variant="info">No matches found with at least {SIMILARITY_THRESHOLD}% similarity</Alert>
+              <div className="p-5 text-center">
+                <i className="bi bi-search" style={{ fontSize: '3rem', color: '#6c757d', opacity: '0.5' }}></i>
+                <h3 className="mt-3 mb-1 font-semibold">No matches found</h3>
+                <p className="text-gray-600 mb-0">Try adjusting your search term or filters.</p>
+              </div>
             ) : (
               <div>
                 <p className="mb-3">Found <span className="text-primary font-semibold">{searchResults.length}</span> potential matches</p>
@@ -442,7 +495,7 @@ Country: ${result.country || 'N/A'}
                           <h6 className="mb-0 font-semibold">
                             {result.firstName} {result.secondName} {result.thirdName || result.name}
                           </h6>
-                          {/* Show source badge */}
+                          {/* NEW: Show source badge */}
                           <div className="mt-1">
                             {renderSourceBadge(result.source)}
                             {result.listType && (
@@ -501,7 +554,7 @@ Country: ${result.country || 'N/A'}
                                   <td>{result.full_name}</td>
                                 </tr>
                               )}
-                              {/* Show reference number */}
+                              {/* NEW: Show reference number */}
                               {result.referenceNumber && (
                                 <tr>
                                   <th className="bg-light">Reference Number</th>
@@ -526,7 +579,7 @@ Country: ${result.country || 'N/A'}
                                   <td>{result.aliasNames.join(', ')}</td>
                                 </tr>
                               )}
-                              {/* Show addresses for entities */}
+                              {/* NEW: Show addresses for entities */}
                               {result.addresses && result.addresses.length > 0 && (
                                 <tr>
                                   <th className="bg-light">Addresses</th>
@@ -545,7 +598,7 @@ Country: ${result.country || 'N/A'}
                                   <td>{result.source}</td>
                                 </tr>
                               )}
-                              {/* Show source file for imports */}
+                              {/* NEW: Show source file for imports */}
                               {result.sourceFile && (
                                 <tr>
                                   <th className="bg-light">Source File</th>
@@ -638,7 +691,7 @@ Country: ${result.country || 'N/A'}
                   <span className="font-medium">Last Updated</span>
                   <span className="stat-value" style={{ fontSize: '1.25rem' }}>{lastUpdated || 'N/A'}</span>
                 </div>
-                {/* Show imported records count */}
+                {/* NEW: Show imported records count */}
                 {importStats.totalImported > 0 && (
                   <div className="d-flex justify-content-between align-items-center mt-3 p-2 bg-light rounded">
                     <span className="font-medium">Imported Records</span>
@@ -667,7 +720,7 @@ Country: ${result.country || 'N/A'}
                   >
                     <i className="bi bi-arrow-clockwise me-2"></i> Refresh Data
                   </Button>
-                  {/* Show import information button */}
+                  {/* NEW: Show import information button */}
                   <Button 
                     className="btn btn-secondary btn-ripple w-100"
                     onClick={() => setShowImportInfo(!showImportInfo)}
@@ -678,7 +731,8 @@ Country: ${result.country || 'N/A'}
                     className="btn btn-secondary btn-ripple w-100" 
                     onClick={() => {
                       if (searchResults && searchResults.length > 0) {
-                        exportResultsToTextFile(searchResults);
+                        // Call the export function
+                        alert('Export function will be called');
                       } else {
                         alert('No results to export');
                       }
@@ -693,7 +747,7 @@ Country: ${result.country || 'N/A'}
         </Row>
       </div>
       
-      {/* Import information section */}
+      {/* NEW: Import information section */}
       {showImportInfo && (
         <div className="mt-4 mb-4 slide-up">
           <Card className="dashboard-card">
