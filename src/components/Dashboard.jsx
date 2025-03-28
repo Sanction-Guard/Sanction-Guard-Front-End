@@ -95,7 +95,7 @@ const Dashboard = () => {
   const fetchTotalRecords = async () => {
     try {
       // Try to get database status from API
-      const response = await axios.get('http://localhost:3001/api/search/status');
+      const response = await axios.get('http://54.197.3.150:3001/api/search/status');
       
       if (response.data && response.data.totalRecords) {
         return response.data.totalRecords;
@@ -103,7 +103,7 @@ const Dashboard = () => {
       
       // Try alternate approach - estimate from search results
       try {
-        const sampleSearch = await axios.post('http://localhost:3001/api/search/search', {
+        const sampleSearch = await axios.post('http://54.197.3.150:3001/api/search/search', {
           searchTerm: '',  // Empty search to get potential counts
           searchType: 'individual'
         });
@@ -167,7 +167,7 @@ const Dashboard = () => {
   // Function to get real audit logs
   const fetchRealAuditLogs = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/audit-logs');
+      const response = await axios.get('http://54.197.3.150:3001/api/audit-logs');
       if (response.data && Array.isArray(response.data)) {
         // Sort by timestamp (newest first)
         const sortedLogs = response.data.sort((a, b) => 
@@ -262,9 +262,9 @@ const Dashboard = () => {
         try {
           // Try to fetch data from multiple endpoints to check status
           const endpoints = [
-            'http://localhost:3001/api/search/status',
-            'http://localhost:3001/api/audit-logs',
-            'http://localhost:3001/api/imports/recent'
+            'http://54.197.3.150:3001/api/search/status',
+            'http://54.197.3.150:3001/api/audit-logs',
+            'http://54.197.3.150:3001/api/imports/recent'
           ];
           
           let successCount = 0;

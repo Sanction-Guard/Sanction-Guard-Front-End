@@ -47,7 +47,7 @@ function DataImport() {
   const fetchRecentImports = async () => {
     try {
       // Use full URL path as in SearchScreen.jsx
-      const response = await fetch('http://localhost:3001/api/imports/recent');
+      const response = await fetch('http://54.197.3.150:3001/api/imports/recent');
       
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
@@ -249,7 +249,7 @@ function DataImport() {
       }, 500);
       
       // Make the API call with timeout
-      const response = await fetch('http://localhost:3001/api/imports/upload', {
+      const response = await fetch('http://54.197.3.150:3001/api/imports/upload', {
         method: 'POST',
         body: formData,
         signal: controller.signal // Add the abort signal

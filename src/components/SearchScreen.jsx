@@ -106,7 +106,7 @@ Country: ${result.country || 'N/A'}
       setTotalSearches((prev) => prev + 1);
 
       // Fixed: Removed trailing question mark from URL
-      const response = await fetch('http://localhost:3001/api/search/search', {
+      const response = await fetch('http://54.197.3.150:3001/api/search/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ Country: ${result.country || 'N/A'}
       try {
         // Fixed: Use consistent endpoint and removed trailing question mark from URL
         // Also using endpoint from the second file which had "search?" instead of "log"
-        const logResponse = await fetch('http://localhost:3001/api/search/search', {
+        const logResponse = await fetch('http://54.197.3.150:3001/api/search/search', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -201,11 +201,11 @@ Country: ${result.country || 'N/A'}
     try {
       // Make API request to status endpoint
       // Try the enhanced endpoint first
-      let response = await fetch('http://localhost:3001/api/search/status');
+      let response = await fetch('http://54.197.3.150:3001/api/search/status');
       
       // If that fails, try the alternative endpoint
       if (!response.ok) {
-        response = await fetch('http://localhost:3001/api/audit-logs');
+        response = await fetch('http://54.197.3.150:3001/api/audit-logs');
       }
       
       if (!response.ok) {
@@ -235,7 +235,7 @@ Country: ${result.country || 'N/A'}
   const fetchImportStats = async () => {
     try {
       // Make API request to imports endpoint
-      const response = await fetch('http://localhost:3001/api/imports/recent');
+      const response = await fetch('http://54.197.3.150:3001/api/imports/recent');
       if (!response.ok) {
         throw new Error('Failed to fetch import statistics');
       }

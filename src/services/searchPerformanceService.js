@@ -9,7 +9,7 @@ export const performSearch = async (searchTerm, searchType = 'individual') => {
   
   try {
     // Make the actual API call
-    const response = await axios.post('http://localhost:3001/api/search/search', {
+    const response = await axios.post('http://54.197.3.150:3001/api/search/search', {
       searchTerm,
       searchType
     });
