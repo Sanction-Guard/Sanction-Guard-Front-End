@@ -1,0 +1,47 @@
+name: Frontend CI/CD for Sanction Guard
+
+on:
+  push:
+    branches:
+      - main 
+      - staging  
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js and install dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  
+
+      - name: Install dependencies
+        run: npm install
+
+      # Run tests using Jest
+      - name: Run Jest tests
+        run: npm test
+
+  deploy-frontend:
+    needs: test-frontend 
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code again for the deployment
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      #Install Vercel CLI globally
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      #Deploy to Vercel (Production)
+      - name: Deploy Frontend to Vercel
+        run: |
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
