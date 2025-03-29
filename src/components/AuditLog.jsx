@@ -18,7 +18,7 @@ function AuditLog() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await axios.get('http://54.197.3.150:3001/api/audit-logs');
+        const response = await axios.get('https://d2c06jif1gr2lf.cloudfront.net/api/audit-logs');
         const sortedLogs = response.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort by timestamp (newest first)
         setLogs(sortedLogs);
       } catch (err) {

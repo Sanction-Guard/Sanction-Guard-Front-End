@@ -41,7 +41,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://54.197.3.150:3001/api/auth/login', {
+      const response = await fetch('https://d2c06jif1gr2lf.cloudfront.net/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
