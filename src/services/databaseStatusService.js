@@ -2,7 +2,12 @@
 import axios from 'axios';
 
 // API base URL
-const API_BASE_URL = 'http://54.197.3.150:3001/api';
+const API_BASE_URL = axios.create({
+  baseURL: 'http://54.197.3.150:3001/api',
+  httpAgent: new (require('https').Agent)({
+    rejectUnauthorized: false
+  })
+});
 
 // Database types being monitored
 const DATABASE_TYPES = {
